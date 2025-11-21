@@ -5,8 +5,7 @@ import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
 from bencherscaffold.protoclasses.grcp_service import GRCPService
 from ioh import get_problem, ProblemClass
-from ioh.iohcpp.problem import OneMaxDummy2, MaxCoverage
-from ioh.iohcpp.suite import RealStarDiscrepancy
+from ioh.iohcpp.problem import MaxCoverage
 
 
 class IOHServiceServicer(GRCPService):

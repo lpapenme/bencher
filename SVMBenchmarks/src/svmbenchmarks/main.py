@@ -12,6 +12,7 @@ from bencherscaffold.protoclasses.grcp_service import GRCPService
 from numpy.random import RandomState
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
+from xgboost import XGBRegressor
 
 directory_file_descriptor = tempfile.TemporaryDirectory()
 directory_name = directory_file_descriptor.name
@@ -40,7 +41,7 @@ def download_slice_localization_data():
         ) as out:
             out.write(f.read().decode("utf-8"))
 
-        print(f"Downloaded slice_localization_data.csv")
+        print("Downloaded slice_localization_data.csv")
     if not os.path.exists(os.path.join(directory_name, "CT_slice_X.npy")):
         data = np.genfromtxt(
             os.path.join(directory_name, "slice_localization_data.csv"),

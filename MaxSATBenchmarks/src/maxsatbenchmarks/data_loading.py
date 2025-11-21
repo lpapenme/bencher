@@ -1,4 +1,3 @@
-import logging
 import os
 import pathlib
 
@@ -61,7 +60,8 @@ def download_maxsat125_data(
             zip_ref.extractall(dirname)
 
         # extract data/maxsat/mse18-new/cluster-expansion/benchmarks/IS1_5.0.5.0.0.5_softer_periodic.wcnf.gz
-        import gzip, shutil
+        import gzip
+        import shutil
 
         with gzip.open(
                 os.path.join(

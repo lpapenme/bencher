@@ -34,7 +34,7 @@ def serve():
 
     # load relative to this file
     benchmark_names_to_properties = json.load(
-        open(os.path.join(os.path.dirname(__file__), 'benchmark-registry.json'), 'r'),
+        open(os.path.join(os.path.dirname(__file__).parent, 'benchmark-registry.json'), 'r'),
     )
 
     # structure: {benchmark_name: {port: int, dimensions: int}}
