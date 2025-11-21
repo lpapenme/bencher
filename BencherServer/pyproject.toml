@@ -1,22 +1,19 @@
-[tool.poetry]
+[project]
 name = "bencherserver"
 version = "0.1.0"
 description = ""
-authors = ["Leonard Papenmeier <leonard.papenmeier@gmail.com>"]
+authors = [{ name = "Leonard Papenmeier", email = "leonard.papenmeier@gmail.com" }]
+requires-python = "~=3.11.0"
 readme = "README.md"
-packages = [
-    { include = "bencherserver" }
+dependencies = [
+    "grpcio>=1.60.1,<2",
+    "protobuf>=4.25.2,<5",
+    "bencherscaffold>=0.3.1,<0.4",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-grpcio = "^1.60.1"
-protobuf = "^4.25.2"
-bencherscaffold = "^0.3.1"
-
-[tool.poetry.scripts]
+[project.scripts]
 start-benchmark-service = "bencherserver.main:serve"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.6,<0.10.0"]
+build-backend = "uv_build"

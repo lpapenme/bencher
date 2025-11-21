@@ -1,26 +1,25 @@
-[tool.poetry]
+[project]
 name = "mujocobenchmarks"
 version = "0.1.0"
 description = ""
-authors = ["Leonard Papenmeier <leonard.papenmeier@gmail.com>"]
+authors = [{ name = "Leonard Papenmeier", email = "leonard.papenmeier@gmail.com" }]
+requires-python = "~=3.8.0"
 readme = "README.md"
-packages = [
-    { include = "mujocobenchmarks", from = "." }
+dependencies = [
+    "bencherscaffold>=0.3.1,<0.4",
+    "mujoco-py==2.1.2.14",
+    "mujoco==2.2.2",
+    "gym>=0.24,<0.25",
+    "numpy>=1.20.1,<2",
+    "box2d>=2.3.10,<3",
+    "box2d-py>=2.3.8,<3",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-bencherscaffold = "^0.3.1"
-mujoco-py = { git = "https://github.com/LeoIV/mujoco-py.git" }
-mujoco = "2.2.2"
-gym = "~0.24"
-numpy = "^1.20.1"
-box2d = "^2.3.10"
-box2d-py = "^2.3.8"
-
-[tool.poetry.scripts]
+[project.scripts]
 start-benchmark-service = "mujocobenchmarks.main:serve"
 
+[tool.uv]
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.6,<0.10.0"]
+build-backend = "uv_build"

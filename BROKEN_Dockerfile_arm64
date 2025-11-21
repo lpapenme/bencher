@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm as build
+FROM python:3.11-slim as build
 
 # Set environment variables
 ENV LANG=C.UTF-8 \
@@ -11,16 +11,25 @@ ENV LANG=C.UTF-8 \
 ARG BUILD_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl swig \
     libglew-dev patchelf python3-dev"
-ARG RUNTIME_DEPENDENCIES="libglfw3 gcc libosmesa6-dev libgl1-mesa-glx"
+ARG RUNTIME_DEPENDENCIES="libglfw3 gcc libosmesa6-dev libgl1 libglx-mesa0"
 WORKDIR /opt
 
 COPY entrypoint.py /entrypoint.py
 
 # Install software, configure Mujoco, Pyenv and Poetry
 RUN apt-get update -y && apt-get install -y $BUILD_DEPENDENCIES $RUNTIME_DEPENDENCIES && \
-    curl -LO https://github.com/google-deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz && \
-    tar -xf mujoco210-linux-x86_64.tar.gz && \
-    rm mujoco210-linux-x86_64.tar.gz && \
+    if [ "$BUILDARCH" = "arm64" ]; then \
+        curl -Lo mujoco.tar.gz https://github.com/google-deepmind/mujoco/releases/download/2.1.1/mujoco-2.1.1-linux-aarch64.tar.gz; \
+    else \
+        curl -Lo mujoco.tar.gz https://github.com/google-deepmind/mujoco/releases/download/2.1.1/mujoco-2.1.1-linux-x86_64.tar.gz; \
+    fi; \
+    tar -xf mujoco.tar.gz && \
+    mv mujoco-2.1.1 mujoco210 && \
+    mv mujoco210/lib/* mujoco210/bin/ && \
+    rm -rf mujoco210/lib && \
+    mv mujoco210/bin/libmujoco.so.2.1.1 mujoco210/bin/libmujoco210.so && \
+    mv mujoco210/bin/libmujoco_nogl.so.2.1.1 mujoco210/bin/libmujoco210_nogl.so && \
+    rm mujoco.tar.gz && \
     rm -rf /tmp/mujocopy-buildlock && \
     curl -LsSf https://astral.sh/uv/install.sh | sh
 
@@ -31,10 +40,11 @@ COPY . /opt/bencher
 
 # Clone bencher repository and install benchmarks, clean up, and make entrypoint script executable
 RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/root/.cache/pypoetry \
     for dir in /opt/bencher/*; do \
         if [ -d "$dir" ]; then \
+            rm -rf $dir/.venv && \
             cd $dir && \
-            rm -rf .venv && \
             uv sync && \
             cd ..; \
         fi; \
@@ -43,6 +53,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache/pip/* && \
+    rm -rf /root/.cache/pypoetry/* && \
     chmod +x /entrypoint.py
 
 # Set the entrypoint

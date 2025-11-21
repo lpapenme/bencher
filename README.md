@@ -12,7 +12,7 @@ repository.
 pwd # /path/to/bencher
 docker build -t bencher .
 # always keep the container running, can be stopped with docker stop <container-id>
-docker run -p 50051:50051 --restart always -d gaunab/bencher:latest
+docker run -p 50051:50051 --restart always -d bencher:latest
 ```
 
 **or**
@@ -215,6 +215,42 @@ If you use this repository or the benchmarks in your research, please cite the f
       url={https://arxiv.org/abs/2505.21321}, 
 }
 ```
+
+# Building on MacOS (under development)
+ 
+`brew install swig gfortran openblas pkg-config glfw libomp`
+
+To allow the build tools to find OpenBLAS, you must run:
+`brew info openblas | grep PKG_CONFIG_PATH`
+
+and set the `PKG_CONFIG_PATH` environment variable accordingly, e.g.:
+`export PKG_CONFIG_PATH="/opt/homebrew/opt/openblas/lib/pkgconfig"`
+
+## Mujoco
+
+Download `https://github.com/google-deepmind/mujoco/releases/download/2.1.1/mujoco-2.1.1-macos-universal2.dmg` and mount it.
+
+Then, copy the dynamic library and headers to `~/.mujoco/mujoco210/`:
+
+```
+mkdir -p ~/.mujoco/mujoco210/bin
+cp /Volumes/MuJoCo/MuJoCo.framework/Versions/Current/libmujoco.2.1.1.dylib ~/.mujoco/mujoco210/bin/
+ln -sf ~/.mujoco/mujoco210/bin/libmujoco.2.1.1.dylib ~/.mujoco/mujoco210/bin/libmujoco.dylib
+mkdir -p ~/.mujoco/mujoco210/bin/MuJoCo.framework/Versions/A/
+ln -s ~/.mujoco/mujoco210/bin/libmujoco.2.1.1.dylib ~/.mujoco/mujoco210/bin/MuJoCo.framework/Versions/A/libmujoco.2.1.1.dylib
+cp -r /Volumes/MuJoCo/MuJoCo.framework/Versions/Current/Headers ~/.mujoco/mujoco210/include
+```
+
+You probably have to allow access to the library in the Security & Privacy settings.
+
+
+```
+export CC=/opt/homebrew/opt/llvm/bin/clang 
+```
+
+## Toubleshooting
+
+One main problem during the compilation occurs if you use a x86_64 Python on an ARM Mac.
 
 [^1]: [`LassoBench`](https://github.com/ksehic/LassoBench) (`
 Šehić Kenan, Gramfort Alexandre, Salmon Joseph and Nardi Luigi, "LassoBench: A High-Dimensional Hyperparameter Optimization Benchmark Suite for Lasso", AutoML conference, 2022.`)

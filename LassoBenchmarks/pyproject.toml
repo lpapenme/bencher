@@ -1,30 +1,31 @@
-[tool.poetry]
+[project]
 name = "lassobenchmarks"
 version = "0.1.0"
 description = ""
-authors = ["Leonard Papenmeier <leonard.papenmeier@gmail.com>"]
+authors = [{ name = "Leonard Papenmeier", email = "leonard.papenmeier@gmail.com" }]
+requires-python = "~=3.10.0"
 readme = "README.md"
-packages = [
-    { include = "lassobenchmarks", from = "." }
+dependencies = [
+    "bencherscaffold>=0.3.1,<0.4",
+    "LassoBench",
+    "gpy==1.13.2",
+    "torch>=2.2.0,<3",
+    "setuptools>=78.1.0,<79",
+    "celer==0.7.4",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-bencherscaffold = "^0.3.1"
-LassoBench = { git = "https://github.com/ksehic/LassoBench.git#egg=LassoBench" }
-gpy = "1.13.1"
-torch = { version = "^2.2.0", source = "torch" }
-setuptools = "^78.1.0"
-celer = { version = "0.7.4" }
-
-[[tool.poetry.source]]
-name = "torch"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
-
-[tool.poetry.scripts]
+[project.scripts]
 start-benchmark-service = "lassobenchmarks.main:serve"
 
+[[tool.uv.index]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+LassoBench = { git = "https://github.com/ksehic/LassoBench.git" }
+torch = { index = "torch" }
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.6,<0.10.0"]
+build-backend = "uv_build"

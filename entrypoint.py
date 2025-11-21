@@ -25,24 +25,19 @@ class ServiceThread(threading.Thread):
             # logfile in home directory
             outfile = os.path.join(os.environ["HOME"], "bencher.out")
             errfile = os.path.join(os.environ["HOME"], "bencher.err")
-            subprocess.check_call(
-                [os.path.join(self.dir, ".venv", "bin", "start-benchmark-service")],
-                stdout=open(outfile, 'a+'),
-                stderr=open(errfile, 'a+'),
-                cwd=self.dir,
-                shell=True,
-                env=os.environ
-            )
+            with open(outfile, 'a+') as out, open(errfile, 'a+') as err:
+                subprocess.check_call(
+                    ["uv", "run", "start-benchmark-service"],
+                    stdout=out,
+                    stderr=err,
+                    cwd=self.dir,
+                    env=os.environ,
+                )
         except subprocess.CalledProcessError as e:
             raise Exception(f"Service failed in directory {self.dir}") from e
 
 
 if __name__ == '__main__':
-    os.environ["POETRY_VIRTUALENVS_PATH"] = "/opt/virtualenvs"
-    os.environ["POETRY_HOME"] = "/opt/poetry"
-    os.environ["PATH"] = "/opt/poetry/bin:" + os.environ["PATH"]
-    os.environ["POETRY_VIRTUALENVS_IN_PROJECT"] = "true"
-
     bencher_dir = os.path.join("/opt", "bencher")
     # bencher_dir = "."
 

@@ -8,7 +8,6 @@
       <module fileurl="file://$PROJECT_DIR$/LassoBenchmarks/LassoBenchmarks.iml" filepath="$PROJECT_DIR$/LassoBenchmarks/LassoBenchmarks.iml" />
       <module fileurl="file://$PROJECT_DIR$/MaxSATBenchmarks/MaxSATBenchmarks.iml" filepath="$PROJECT_DIR$/MaxSATBenchmarks/MaxSATBenchmarks.iml" />
       <module fileurl="file://$PROJECT_DIR$/MujocoBenchmarks/MujocoBenchmarks.iml" filepath="$PROJECT_DIR$/MujocoBenchmarks/MujocoBenchmarks.iml" />
-      <module fileurl="file://$PROJECT_DIR$/NevergradBenchmarks/NevergradBenchmarks.iml" filepath="$PROJECT_DIR$/NevergradBenchmarks/NevergradBenchmarks.iml" />
       <module fileurl="file://$PROJECT_DIR$/NoDependencyBenchmark/NoDependencyBenchmark.iml" filepath="$PROJECT_DIR$/NoDependencyBenchmark/NoDependencyBenchmark.iml" />
       <module fileurl="file://$PROJECT_DIR$/SVMBenchmarks/SVMBenchmarks.iml" filepath="$PROJECT_DIR$/SVMBenchmarks/SVMBenchmarks.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/bencher.iml" filepath="$PROJECT_DIR$/.idea/bencher.iml" />

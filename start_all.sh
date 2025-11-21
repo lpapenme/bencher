@@ -8,7 +8,7 @@ for dir in ./*; do
         echo "Starting benchmark service for $dir"
         cd $dir
         #poetry run start-benchmark-service &
-        bash -c "poetry install --no-root && poetry run start-benchmark-service &"
+        bash -c "uv run start-benchmark-service &"
         cd ..
     fi
 done

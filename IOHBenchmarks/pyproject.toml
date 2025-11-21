@@ -2,22 +2,18 @@
 name = "iohbenchmarks"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Leonard Papenmeier",email = "leonard.papenmeier@posteo.de"}
-]
-packages = [
-    { include = "iohbenchmarks" }
-]
-readme = "README.md"
+authors = [{ name = "Leonard Papenmeier", email = "leonard.papenmeier@posteo.de" }]
 requires-python = ">=3.10,<4.0"
+readme = "README.md"
 dependencies = [
     "ioh (>=0.3.18,<0.4.0)",
-    "bencherscaffold (>=0.3.2,<0.4.0)"
+    "bencherscaffold (>=0.3.2,<0.4.0)",
 ]
+packages = [{ include = "iohbenchmarks" }]
 
-[tool.poetry.scripts]
+[project.scripts]
 start-benchmark-service = "iohbenchmarks.main:serve"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.6,<0.10.0"]
+build-backend = "uv_build"
