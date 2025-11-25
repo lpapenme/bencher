@@ -1,24 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-    <component name="ProjectModuleManager">
-        <modules>
-            <module fileurl="file://$PROJECT_DIR$/BencherServer/BencherServer.iml"
-                    filepath="$PROJECT_DIR$/BencherServer/BencherServer.iml"/>
-            <module fileurl="file://$PROJECT_DIR$/EboBenchmarks/EboBenchmarks.iml"
-                    filepath="$PROJECT_DIR$/EboBenchmarks/EboBenchmarks.iml"/>
-            <module fileurl="file://$PROJECT_DIR$/IOHBenchmarks/IOHBenchmarks.iml"
-                    filepath="$PROJECT_DIR$/IOHBenchmarks/IOHBenchmarks.iml"/>
-            <module fileurl="file://$PROJECT_DIR$/LassoBenchmarks/LassoBenchmarks.iml"
-                    filepath="$PROJECT_DIR$/LassoBenchmarks/LassoBenchmarks.iml"/>
-            <module fileurl="file://$PROJECT_DIR$/MaxSATBenchmarks/MaxSATBenchmarks.iml"
-                    filepath="$PROJECT_DIR$/MaxSATBenchmarks/MaxSATBenchmarks.iml"/>
-            <module fileurl="file://$PROJECT_DIR$/MujocoBenchmarks/MujocoBenchmarks.iml"
-                    filepath="$PROJECT_DIR$/MujocoBenchmarks/MujocoBenchmarks.iml"/>
-            <module fileurl="file://$PROJECT_DIR$/NoDependencyBenchmark/NoDependencyBenchmark.iml"
-                    filepath="$PROJECT_DIR$/NoDependencyBenchmark/NoDependencyBenchmark.iml"/>
-            <module fileurl="file://$PROJECT_DIR$/SVMBenchmarks/SVMBenchmarks.iml"
-                    filepath="$PROJECT_DIR$/SVMBenchmarks/SVMBenchmarks.iml"/>
-            <module fileurl="file://$PROJECT_DIR$/.idea/bencher.iml" filepath="$PROJECT_DIR$/.idea/bencher.iml"/>
-        </modules>
-    </component>
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/BO4MobBenchmark/bencher.BO4MobBenchmark.iml" filepath="$PROJECT_DIR$/BO4MobBenchmark/bencher.BO4MobBenchmark.iml" />
+      <module fileurl="file://$PROJECT_DIR$/BencherServer/bencher.BencherServer.iml" filepath="$PROJECT_DIR$/BencherServer/bencher.BencherServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/EboBenchmarks/bencher.EboBenchmarks.iml" filepath="$PROJECT_DIR$/EboBenchmarks/bencher.EboBenchmarks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/IOHBenchmarks/bencher.IOHBenchmarks.iml" filepath="$PROJECT_DIR$/IOHBenchmarks/bencher.IOHBenchmarks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/LassoBenchmarks/bencher.LassoBenchmarks.iml" filepath="$PROJECT_DIR$/LassoBenchmarks/bencher.LassoBenchmarks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MaxSATBenchmarks/bencher.MaxSATBenchmarks.iml" filepath="$PROJECT_DIR$/MaxSATBenchmarks/bencher.MaxSATBenchmarks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MujocoBenchmarks/bencher.MujocoBenchmarks.iml" filepath="$PROJECT_DIR$/MujocoBenchmarks/bencher.MujocoBenchmarks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/NoDependencyBenchmark/bencher.NoDependencyBenchmark.iml" filepath="$PROJECT_DIR$/NoDependencyBenchmark/bencher.NoDependencyBenchmark.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SVMBenchmarks/bencher.SVMBenchmarks.iml" filepath="$PROJECT_DIR$/SVMBenchmarks/bencher.SVMBenchmarks.iml" />
+    </modules>
+  </component>
 </project>

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="lassobenchmarks.main" type="PythonConfigurationType" factoryName="Python">
-    <module name="LassoBenchmarks" />
+    <module name="bencher.LassoBenchmarks" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
