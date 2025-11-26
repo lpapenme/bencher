@@ -398,5 +398,2105 @@
     "port": 50059,
     "dimensions": 450,
     "type": "purely_binary"
+  },
+  "1ramp_221008_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221008_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221008_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221008_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221008_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221008_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221009_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221009_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221009_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221009_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221009_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221009_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221010_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221010_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221010_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221010_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221010_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221010_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221011_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221011_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221011_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221011_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221011_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221011_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221012_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221012_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221012_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221012_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221012_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221012_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221013_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221013_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221013_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221013_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221013_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221013_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221014_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221014_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221014_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221014_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221014_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221014_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221015_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221015_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221015_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221015_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221015_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221015_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221016_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221016_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221016_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221016_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221016_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221016_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221017_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221017_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221017_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221017_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221017_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221017_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221018_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221018_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221018_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221018_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221018_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221018_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221019_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221019_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221019_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221019_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221019_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221019_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221020_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221020_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221020_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221020_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221020_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221020_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221021_06-07_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221021_06-07_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221021_08-09_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221021_08-09_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221021_17-18_count": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "1ramp_221021_17-18_speed": {
+    "port": 50060,
+    "dimensions": 3,
+    "type": "purely_integer"
+  },
+  "2corridor_221008_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221008_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221008_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221008_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221008_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221008_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221009_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221009_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221009_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221009_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221009_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221009_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221010_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221010_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221010_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221010_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221010_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221010_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221011_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221011_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221011_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221011_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221011_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221011_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221012_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221012_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221012_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221012_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221012_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221012_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221013_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221013_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221013_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221013_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221013_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221013_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221014_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221014_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221014_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221014_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221014_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221014_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221015_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221015_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221015_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221015_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221015_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221015_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221016_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221016_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221016_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221016_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221016_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221016_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221017_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221017_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221017_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221017_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221017_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221017_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221018_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221018_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221018_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221018_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221018_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221018_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221019_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221019_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221019_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221019_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221019_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221019_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221020_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221020_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221020_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221020_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221020_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221020_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221021_06-07_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221021_06-07_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221021_08-09_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221021_08-09_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221021_17-18_count": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "2corridor_221021_17-18_speed": {
+    "port": 50060,
+    "dimensions": 21,
+    "type": "purely_integer"
+  },
+  "3junction_221008_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221008_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221008_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221008_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221008_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221008_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221009_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221009_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221009_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221009_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221009_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221009_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221010_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221010_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221010_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221010_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221010_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221010_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221011_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221011_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221011_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221011_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221011_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221011_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221012_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221012_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221012_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221012_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221012_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221012_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221013_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221013_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221013_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221013_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221013_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221013_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221014_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221014_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221014_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221014_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221014_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221014_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221015_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221015_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221015_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221015_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221015_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221015_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221016_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221016_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221016_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221016_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221016_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221016_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221017_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221017_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221017_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221017_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221017_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221017_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221018_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221018_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221018_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221018_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221018_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221018_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221019_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221019_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221019_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221019_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221019_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221019_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221020_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221020_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221020_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221020_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221020_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221020_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221021_06-07_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221021_06-07_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221021_08-09_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221021_08-09_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221021_17-18_count": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "3junction_221021_17-18_speed": {
+    "port": 50060,
+    "dimensions": 44,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221008_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221008_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221008_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221008_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221008_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221008_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221009_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221009_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221009_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221009_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221009_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221009_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221010_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221010_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221010_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221010_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221010_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221010_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221011_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221011_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221011_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221011_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221011_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221011_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221012_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221012_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221012_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221012_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221012_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221012_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221013_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221013_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221013_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221013_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221013_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221013_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221014_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221014_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221014_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221014_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221014_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221014_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221015_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221015_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221015_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221015_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221015_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221015_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221016_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221016_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221016_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221016_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221016_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221016_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221017_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221017_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221017_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221017_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221017_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221017_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221018_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221018_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221018_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221018_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221018_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221018_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221019_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221019_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221019_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221019_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221019_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221019_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221020_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221020_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221020_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221020_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221020_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221020_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221021_06-07_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221021_06-07_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221021_08-09_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221021_08-09_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221021_17-18_count": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "4smallRegion_221021_17-18_speed": {
+    "port": 50060,
+    "dimensions": 151,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221008_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221008_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221008_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221008_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221008_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221008_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221009_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221009_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221009_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221009_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221009_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221009_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221010_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221010_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221010_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221010_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221010_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221010_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221011_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221011_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221011_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221011_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221011_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221011_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221012_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221012_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221012_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221012_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221012_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221012_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221013_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221013_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221013_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221013_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221013_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221013_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221014_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221014_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221014_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221014_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221014_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221014_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221015_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221015_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221015_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221015_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221015_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221015_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221016_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221016_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221016_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221016_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221016_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221016_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221017_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221017_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221017_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221017_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221017_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221017_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221018_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221018_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221018_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221018_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221018_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221018_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221019_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221019_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221019_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221019_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221019_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221019_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221020_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221020_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221020_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221020_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221020_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221020_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221021_06-07_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221021_06-07_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221021_08-09_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221021_08-09_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221021_17-18_count": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
+  },
+  "5fullRegion_221021_17-18_speed": {
+    "port": 50060,
+    "dimensions": 10100,
+    "type": "purely_integer"
   }
 }

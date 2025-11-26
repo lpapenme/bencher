@@ -1,67 +1,81 @@
+import glob
 import logging
+import re
+import tempfile
+from importlib import resources
 
-import numpy as np
+import pandas as pd
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
 from bencherscaffold.protoclasses.grcp_service import GRCPService
+from bo4mob import single_od_run
+
+# our benchmarks will have names like 1ramp_221008_08-09_count where everything after 1ramp can vary
+# well match the names via regex
+valid_benchmark_expressions = [
+    r"1ramp_\d{6}_(06-07|08-09|17-18)_(count|speed)",
+    r"2corridor_\d{6}_(06-07|08-09|17-18)_(count|speed)",
+    r"3junction_\d{6}_(06-07|08-09|17-18)_(count|speed)",
+    r"4smallRegion_\d{6}_(06-07|08-09|17-18)_(count|speed)",
+    r"5fullRegion_\d{6}_(06-07|08-09|17-18)_(count|speed)",
+]
 
 
-def eval_lasso(
-        x: np.ndarray,
-        benchmark
-):
-    return benchmark.evaluate(x)
-
-
-benchmark_map = {
-    'lasso-dna'         : lambda
-        _: LassoBench.RealBenchmark(pick_data='dna', mf_opt='discrete_fidelity'),
-    'lasso-simple'      : lambda
-        _: LassoBench.SyntheticBenchmark(pick_bench='synt_simple'),
-    'lasso-medium'      : lambda
-        _: LassoBench.SyntheticBenchmark(pick_bench='synt_medium'),
-    'lasso-high'        : lambda
-        _: LassoBench.SyntheticBenchmark(pick_bench='synt_high'),
-    'lasso-hard'        : lambda
-        _: LassoBench.SyntheticBenchmark(pick_bench='synt_hard'),
-    'lasso-leukemia'    : lambda
-        _: LassoBench.RealBenchmark(pick_data='leukemia', mf_opt='discrete_fidelity'),
-    'lasso-rcv1'        : lambda
-        _: LassoBench.RealBenchmark(pick_data='rcv1', mf_opt='discrete_fidelity'),
-    'lasso-diabetes'    : lambda
-        _: LassoBench.RealBenchmark(pick_data='diabetes', mf_opt='discrete_fidelity'),
-    'lasso-breastcancer': lambda
-        _: LassoBench.RealBenchmark(pick_data='breast_cancer', mf_opt='discrete_fidelity'),
-}
-
-
-class LassoServiceServicer(GRCPService):
+class BO4MOBServiceServicer(GRCPService):
 
     def __init__(
             self
     ):
-        super().__init__(port=50053, n_cores=1)
+        super().__init__(port=50060, n_cores=1)
 
     def evaluate_point(
             self,
             request: BenchmarkRequest,
             context
     ) -> EvaluationResult:
-        assert request.benchmark.name in benchmark_map.keys(), "Invalid benchmark name"
+        assert any(re.fullmatch(expr, request.benchmark.name) for expr in valid_benchmark_expressions), \
+            f"Invalid benchmark name: {request.benchmark.name}"
         x = [v.value for v in request.point.values]
-        x = np.array(x)
-        # lasso benchmarks are in [-1, 1] while x is in [0, 1], so we need to scale it
-        x = 2 * x - 1
-        benchmark = benchmark_map[request.benchmark.name](None)
+        # we have "template" csv files od_1ramp.csv, od_2corridor.csv, ...in csv_templates folder
+        package_root = resources.files("bo4mobbenchmark")
+        template_csv_path = package_root / "csv_templates" / f"od_{request.benchmark.name}.csv"
+        # replace the values in the "flow" column of the template csv with the values from x, use pandas
+        df = pd.read_csv(template_csv_path)
+        assert len(x) == len(df), f"Length of x ({len(x)}) does not match number of OD pairs ({len(df)})"
+        df["flow"] = x
+
+        benchmark_date = request.benchmark.name.split("_")[1]
+        benchmark_hour = request.benchmark.name.split("_")[2]
+        benchmark_eval_type = request.benchmark.name.split("_")[3]
+
+        # save to TemporaryFile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_csv_path = f"{tmpdir}/od_input.csv"
+            df.to_csv(temp_csv_path, index=False)
+            single_od_run.run_single_simulation(
+                network_name=request.benchmark.name.split("_")[0],
+                date=benchmark_date,
+                hour=benchmark_hour,
+                eval_measure=benchmark_eval_type,
+                routes_per_od="single",
+                od_csv=temp_csv_path,
+            )
+            # now there's a NMRSE_{nrmse_val}.txt file in output/single_od_run/network_1ramp_221014_08-09_count_multiple_od_1ramp_values/result
+            # just get the file via wildcards and read the value
+
+            nrmse_dir = glob.glob(f"output/*/*/result")
+            nrmse_file = glob.glob(f"{nrmse_dir[0]}/NRMSE_*.txt")[0]
+            # just get nrmse value via the filename
+            nrmse_value = float(re.search(r"NRMSE_(\d+\.\d+).txt", nrmse_file).group(1))
         result = EvaluationResult(
-            value=eval_lasso(x, benchmark),
+            value=nrmse_value
         )
         return result
 
 
 def serve():
     logging.basicConfig()
-    lasso = LassoServiceServicer()
-    lasso.serve()
+    bo4mob = BO4MOBServiceServicer()
+    bo4mob.serve()
 
 
 if __name__ == '__main__':

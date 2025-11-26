@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import grpc
 import os
 from argparse import ArgumentParser
+from pathlib import Path
 
 from bencherscaffold.protoclasses import bencher_pb2_grpc
 
@@ -32,10 +33,9 @@ def serve():
 
     bencher_server = BencherServer()
 
-    # load relative to this file
-    benchmark_names_to_properties = json.load(
-        open(os.path.join(os.path.dirname(__file__).parent, 'benchmark-registry.json'), 'r'),
-    )
+    file_path = Path(__file__).parent.parent.parent / 'benchmark-registry.json'
+    with open(file_path, 'r') as f:
+        benchmark_names_to_properties = json.load(f)
 
     # structure: {benchmark_name: {port: int, dimensions: int}}
     ports_to_benchmarks = dict()

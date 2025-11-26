@@ -7,11 +7,12 @@ requires-python = ">=3.11"
 dependencies = [
     "bencherscaffold>=0.3.1,<0.4",
     "bo4mob",
-    "torch==2.6.0"
+    "pandas>=2.2.3",
+    "torch==2.6.0",
 ]
 
 [project.scripts]
-start-benchmark-service = "bo4mobbenchmarks.main:serve"
+start-benchmark-service = "bo4mobbenchmark.main:serve"
 
 [tool.uv.sources]
 bo4mob = { git = "https://github.com/lpapenme/BO4Mob.git" }

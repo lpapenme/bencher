@@ -13,10 +13,9 @@ ENV LANG=C.UTF-8 \
 
 # Group all dependency ARGs at the top for clarity
 ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
-ARG BUILD_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
-    curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl swig \
-    libglew-dev patchelf python3-dev"
-ARG RUNTIME_DEPENDENCIES="libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools"
+ARG RUNTIME_DEPENDENCIES="curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
+    curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
+    libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig git"
 
 # This entire layer for system dependencies will be cached after the first successful run.
 RUN apt-get update -y && \
@@ -43,7 +42,7 @@ WORKDIR /opt/bencher
 RUN --mount=type=cache,target=/root/.cache \
     for dir in /opt/bencher/*; do \
         if [ -d "$dir" ] && [ -f "$dir/pyproject.toml" ]; then \
-            cd "$dir" && uv sync && cd ..; \
+            cd "$dir" && uv build && uv sync && cd ..; \
         fi; \
     done
 
@@ -65,7 +64,9 @@ ENV LANG=C.UTF-8 \
     SUMO_HOME=/usr/share/sumo
 
 ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
-ARG RUNTIME_DEPENDENCIES="libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools"
+ARG RUNTIME_DEPENDENCIES="curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
+    curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
+    libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig git"
 
 # Install only the necessary RUNTIME and PPA dependencies.
 RUN apt-get update -y && \

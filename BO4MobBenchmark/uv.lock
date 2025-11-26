@@ -3,8 +3,8 @@ revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.12' and sys_platform != 'darwin'",
-    "python_full_version < '3.12' and sys_platform != 'darwin'",
     "python_full_version >= '3.12' and sys_platform == 'darwin'",
+    "python_full_version < '3.12' and sys_platform != 'darwin'",
     "python_full_version < '3.12' and sys_platform == 'darwin'",
 ]
 
@@ -24,7 +24,7 @@ wheels = [
 [[package]]
 name = "bo4mob"
 version = "0.1.0"
-source = { git = "https://github.com/lpapenme/BO4Mob.git#256942569ae566f95f56d94e8c44d9a46abdd499" }
+source = { git = "https://github.com/lpapenme/BO4Mob.git#27e7a92037dc7f3703dd6cf461003c749c7702ff" }
 dependencies = [
     { name = "botorch" },
     { name = "lxml" },
@@ -42,6 +42,7 @@ source = { editable = "." }
 dependencies = [
     { name = "bencherscaffold" },
     { name = "bo4mob" },
+    { name = "pandas" },
     { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
 ]
@@ -50,6 +51,7 @@ dependencies = [
 requires-dist = [
     { name = "bencherscaffold", specifier = ">=0.3.1,<0.4" },
     { name = "bo4mob", git = "https://github.com/lpapenme/BO4Mob.git" },
+    { name = "pandas", specifier = ">=2.2.3" },
     { name = "torch", specifier = "==2.6.0", index = "https://download.pytorch.org/whl/cpu" },
 ]
 
