@@ -26,8 +26,8 @@ jobs:
         with:
           default: 3.11
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v1
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
 
       - name: Lock all subprojects
         run: |
@@ -37,13 +37,16 @@ jobs:
               if [ -f "$dir/.python-version" ]; then \
                 cd $dir && \
                 pyenv install $(cat .python-version) || echo "pyenv already installed version $(cat .python-version)" && \
-                PATH="$PYENV_ROOT/shims:$PATH" && \
+                PATH="$PYENV_ROOT/shims:$PATH" poetry env use $(cat .python-version) && \
                 cd ..; \
               fi; \
               cd $dir && \
-              uv cache clean && \
-              uv lock --upgrade bencherscaffold && \
-              git add uv.lock && \
+              poetry cache clear pypi --all && \
+              poetry update --lock --no-cache bencherscaffold -v && \
+              git add poetry.lock && \
+              if [ -f "$dir/.python-version" ]; then \
+                poetry env use system; \
+              fi; \
               cd $GITHUB_WORKSPACE; \
             fi; \
           done
@@ -54,3 +57,4 @@ jobs:
           git config --local user.name "GitHub Action"
           git commit -am "Update scaffold version"
           git push
+        
