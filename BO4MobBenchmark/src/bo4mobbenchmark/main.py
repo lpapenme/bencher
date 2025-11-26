@@ -65,7 +65,7 @@ class BO4MOBServiceServicer(GRCPService):
             # now there's a NMRSE_{nrmse_val}.txt file in output/single_od_run/network_1ramp_221014_08-09_count_multiple_od_1ramp_values/result
             # just get the file via wildcards and read the value
             try:
-                nrmse_dir = glob.glob(f"output/*/*/result")
+                nrmse_dir = glob.glob("output/*/*/result")
                 nrmse_file = glob.glob(f"{nrmse_dir[0]}/NRMSE_*.txt")[0]
                 # just get nrmse value via the filename
                 nrmse_value = float(re.search(r"NRMSE_(\d+\.\d+).txt", nrmse_file).group(1))
