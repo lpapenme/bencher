@@ -17,7 +17,7 @@ env:
 
 jobs:
   build-test-docker:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
 
     steps:
       - name: Checkout code
@@ -123,7 +123,7 @@ jobs:
             CACHEBUST=${{ github.sha }}
 
   build-test-singularity:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64]
     needs: build-test-docker
     steps:
       - uses: actions/checkout@v4

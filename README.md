@@ -290,4 +290,4 @@ Evolutionary Computation 32.3 (2024): 205-210.
 [^12]: Hansen, Nikolaus, et al. "COCO: A platform for comparing continuous optimizers in a black-box setting."
 Optimization Methods and Software 36.1 (2021): 114-144.
 [^13]: Each category has 5 possible values. The benchmark expects an integer between 0 and 4 for each category.
-[^14]: Ryu, Seunghee, et al. "BO4Mob: Bayesian Optimization Benchmarks for High-Dimensional Urban Mobility Problem." *arXiv preprint arXiv:2510.18824* (2025). For these benchmarks, values should be integers between 1 and 2500.
+[^14]: Ryu, Seunghee, et al. "BO4Mob: Bayesian Optimization Benchmarks for High-Dimensional Urban Mobility Problem." *arXiv preprint arXiv:2510.18824* (2025). For 1ramp, values should be integers between 1 and 2500. For the other scenarios, values should be integers between 1 and 2000.
