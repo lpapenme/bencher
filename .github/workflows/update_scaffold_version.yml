@@ -42,8 +42,8 @@ jobs:
               fi; \
               cd $dir && \
               uv cache clean && \
-              uv pip compile pyproject.toml -o requirements.lock --upgrade-package bencherscaffold && \
-              git add requirements.lock && \
+              uv lock --upgrade bencherscaffold && \
+              git add uv.lock && \
               cd $GITHUB_WORKSPACE; \
             fi; \
           done
