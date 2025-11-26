@@ -44,7 +44,7 @@ jobs:
               fi; \
               cd $dir && \
               uv cache clean && \
-              uv lock --upgrade bencherscaffold && \
+              uv lock --upgrade-package bencherscaffold && \
               git add uv.lock && \
               cd $GITHUB_WORKSPACE; \
             fi; \
