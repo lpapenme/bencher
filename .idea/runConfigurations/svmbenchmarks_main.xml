@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="svmbenchmarks.main" type="PythonConfigurationType" factoryName="Python">
-    <module name="SVMBenchmarks" />
+    <module name="bencher.SVMBenchmarks" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />

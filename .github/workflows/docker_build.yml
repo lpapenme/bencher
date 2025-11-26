@@ -77,7 +77,7 @@ jobs:
       - name: Checkout bencherclient code
         uses: actions/checkout@v4
         with:
-          repository: 'LeoIV/bencherclient'
+          repository: 'lpapenme/bencherclient'
           ref: 'master'
           path: bencherclient
 

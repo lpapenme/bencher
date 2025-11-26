@@ -82,19 +82,17 @@ wheels = [
 
 [[package]]
 name = "cython"
-version = "3.0.12"
+version = "0.29.37"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/5a/25/886e197c97a4b8e254173002cdc141441e878ff29aaa7d9ba560cd6e4866/cython-3.0.12.tar.gz", hash = "sha256:b988bb297ce76c671e28c97d017b95411010f7c77fa6623dd0bb47eed1aee1bc", size = 2757617, upload-time = "2025-02-11T09:05:50.245Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2a/97/8cc3fe7c6de4796921236a64d00ca8a95565772e57f0d3caae68d880b592/Cython-0.29.37.tar.gz", hash = "sha256:f813d4a6dd94adee5d4ff266191d1d95bf6d4164a4facc535422c021b2504cfb", size = 2099621, upload-time = "2023-12-19T09:22:39.397Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/92/33/9cab34b6eb148246bafc7ee6b27c34b9cd7866fbf55feaa96817c959a1e7/Cython-3.0.12-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:731d719423e041242c9303c80cae4327467299b90ffe62d4cc407e11e9ea3160", size = 3068249, upload-time = "2025-02-11T09:08:46.304Z" },
-    { url = "https://files.pythonhosted.org/packages/91/9b/917c7be4e33e55d8a58ee044fbee4198bcd239cc1ea322b4269d37f7468a/Cython-3.0.12-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c3238a29f37999e27494d120983eca90d14896b2887a0bd858a381204549137a", size = 3474339, upload-time = "2025-02-11T09:08:48.831Z" },
-    { url = "https://files.pythonhosted.org/packages/42/31/064b3a2d939a2dd9f58cd8f640a85f6c10b44a21687405cd7cff2b506dda/Cython-3.0.12-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b588c0a089a9f4dd316d2f9275230bad4a7271e5af04e1dc41d2707c816be44b", size = 3644379, upload-time = "2025-02-11T09:08:51.546Z" },
-    { url = "https://files.pythonhosted.org/packages/8f/c1/2f0363c3fc27cd8f5c5b05bf86cda1e07fa3bd287049d371c3cf37667326/Cython-3.0.12-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8ab9f5198af74eb16502cc143cdde9ca1cbbf66ea2912e67440dd18a36e3b5fa", size = 3693512, upload-time = "2025-02-11T09:08:55.072Z" },
-    { url = "https://files.pythonhosted.org/packages/11/64/e1a8a2b9e39d8554eaa3d3ca141e9d6344490a85e7d1cf6c12946413ac3a/Cython-3.0.12-cp38-cp38-musllinux_1_2_aarch64.whl", hash = "sha256:8ee841c0e114efa1e849c281ac9b8df8aa189af10b4a103b1c5fd71cbb799679", size = 3535704, upload-time = "2025-02-11T09:08:58.579Z" },
-    { url = "https://files.pythonhosted.org/packages/a1/ac/0d70e54dbbf297f12a69003c5e43a3c184079b5a92bcb4ebb4edc6cf231e/Cython-3.0.12-cp38-cp38-musllinux_1_2_x86_64.whl", hash = "sha256:43c48b5789398b228ea97499f5b864843ba9b1ab837562a9227c6f58d16ede8b", size = 3755667, upload-time = "2025-02-11T09:09:01.131Z" },
-    { url = "https://files.pythonhosted.org/packages/fe/b5/ff7a1e5c67e03454af578954baad8ef394c8248b04ac1571660e4d21b545/Cython-3.0.12-cp38-cp38-win32.whl", hash = "sha256:5e5f17c48a4f41557fbcc7ee660ccfebe4536a34c557f553b6893c1b3c83df2d", size = 2589933, upload-time = "2025-02-11T09:09:03.474Z" },
-    { url = "https://files.pythonhosted.org/packages/b2/dd/9cf07ef39545a5bfbae395b0db127d736e0a7c1baf045de88d1cf1b86472/Cython-3.0.12-cp38-cp38-win_amd64.whl", hash = "sha256:309c081057930bb79dc9ea3061a1af5086c679c968206e9c9c2ec90ab7cb471a", size = 2792212, upload-time = "2025-02-11T09:09:05.779Z" },
-    { url = "https://files.pythonhosted.org/packages/27/6b/7c87867d255cbce8167ed99fc65635e9395d2af0f0c915428f5b17ec412d/Cython-3.0.12-py2.py3-none-any.whl", hash = "sha256:0038c9bae46c459669390e53a1ec115f8096b2e4647ae007ff1bf4e6dee92806", size = 1171640, upload-time = "2025-02-11T09:05:45.648Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/44/599aaab5a0b81e52b462b1d1a6b19eeb1f184c04769f775f724c5dab5e6f/Cython-0.29.37-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:b6c48f1032b379135a5b4a31976d6c468e02490688acf9254c6c8ed27bd4cbd4", size = 1836474, upload-time = "2023-12-19T09:24:51.301Z" },
+    { url = "https://files.pythonhosted.org/packages/10/46/9a1b428442d09a6496d56e913ff4c3f4a1db119adc45d45ad2655bcb2a68/Cython-0.29.37-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:3f87bef1808d255cf13be378c7ad27ae7c6db6df7732217d32428d1daf4109be", size = 1937894, upload-time = "2023-12-19T09:24:53.977Z" },
+    { url = "https://files.pythonhosted.org/packages/15/bf/def9c0352ac718c1d05fff7f550395e9f1f88b9e49eec795d4c42c4b1a96/Cython-0.29.37-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_24_i686.whl", hash = "sha256:9e68bafeeb97d5a403fb1f7700bd4a55a1f8989824c323ae02ae8a4fcd88f6a1", size = 1937795, upload-time = "2023-12-19T09:24:56.969Z" },
+    { url = "https://files.pythonhosted.org/packages/8f/db/b1ad82f6b478597cf2ec4c71419e03966c60b0e82713bc2d9d8c6fdd121f/Cython-0.29.37-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:e14cd44c830e53cf9d7269c87a6bcc638bb065ec07e24990e338162c7001d3c3", size = 1864513, upload-time = "2023-12-19T09:24:59.708Z" },
+    { url = "https://files.pythonhosted.org/packages/2a/4e/0da19ee2896f32823a78035c23775324a1488a1fd1ce04bb0f5ad68dd14b/Cython-0.29.37-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:0544f7a3e4437b89b356baa15387494c18214e03f2ffaddada5a2c71c3dfd24b", size = 1932838, upload-time = "2023-12-19T09:25:04.047Z" },
+    { url = "https://files.pythonhosted.org/packages/72/7b/977bec95d2dd10d5f04f79ff040d25c73313634f1cdb5ab3268742cc8dfa/Cython-0.29.37-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:2de3e729d25f041036e81e2f15683dd129f977dfb5b06267e30e8d7acec43225", size = 2044305, upload-time = "2023-12-19T09:25:08.641Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/26/9d8de10005fedb1eceabe713348d43bae1dbab1786042ca0751a2e2b0f8c/Cython-0.29.37-py2.py3-none-any.whl", hash = "sha256:95f1d6a83ef2729e67b3fa7318c829ce5b07ac64c084cd6af11c228e0364662c", size = 989503, upload-time = "2023-12-19T09:22:32.861Z" },
 ]
 
 [[package]]
@@ -229,6 +227,7 @@ dependencies = [
     { name = "bencherscaffold" },
     { name = "box2d" },
     { name = "box2d-py" },
+    { name = "cython" },
     { name = "gym" },
     { name = "mujoco" },
     { name = "mujoco-py" },
@@ -240,6 +239,7 @@ requires-dist = [
     { name = "bencherscaffold", specifier = ">=0.3.1,<0.4" },
     { name = "box2d", specifier = ">=2.3.10,<3" },
     { name = "box2d-py", specifier = ">=2.3.8,<3" },
+    { name = "cython", specifier = "<3.0" },
     { name = "gym", specifier = ">=0.24,<0.25" },
     { name = "mujoco", specifier = "==2.2.2" },
     { name = "mujoco-py", specifier = "==2.1.2.14" },

@@ -116,6 +116,15 @@ print(f"Result: {result}")
 
 ### Available Benchmarks
 
+The urban mobility benchmarks (`1ramp_*`, `2corridor_*`, etc.) follow a templated naming convention: `BASE-NAME_DATE_HOUR_EVAL-TYPE` [^14].
+
+-   **`BASE-NAME`**: Defines the traffic scenario (`1ramp`, `2corridor`, `3junction`, `4smallRegion`, `5fullRegion`).
+-   **`DATE`**: A date in `yymmdd` format, from `221008` to `221021`.
+-   **`HOUR`**: The time of day (`06-07`, `08-09`, or `17-18`).
+-   **`EVAL-TYPE`**: The evaluation metric (`count` or `speed`).
+
+For example, a valid benchmark name is `1ramp_221008_08-09_count`.
+
 The following benchmarks are available:
 
 | Benchmark Name             | # Dimensions | Type        | Source(s)      | Noisy    |
@@ -143,6 +152,11 @@ The following benchmarks are available:
 | mujoco-humanoid            | 6392         | continuous  | [^9],[^5]      | &#x2611; |
 | svm                        | 388          | continuous  | [^4],[^5],[^8] | &#x2612; |
 | svmmixed                   | 53           | mixed       | [^6],[^7]      | &#x2612; |
+| 1ramp_*                    | 3            | integer     | [^14]          | &#x2612; |
+| 2corridor_*                | 21           | integer     | [^14]          | &#x2612; |
+| 3junction_*                | 44           | integer     | [^14]          | &#x2612; |
+| 4smallRegion_*             | 151          | integer     | [^14]          | &#x2612; |
+| 5fullRegion_*              | 10100        | integer     | [^14]          | &#x2612; |
 | pestcontrol                | 25           | categorical | [^10],[^13]    | &#x2612; |
 | bbob-sphere                | any          | continuous  | [^11],[^12]    | &#x2612; |
 | bbob-ellipsoid             | any          | continuous  | [^11],[^12]    | &#x2612; |
@@ -217,7 +231,7 @@ If you use this repository or the benchmarks in your research, please cite the f
 ```
 
 # Building on MacOS (under development)
- 
+
 `brew install swig gfortran openblas pkg-config glfw libomp`
 
 To allow the build tools to find OpenBLAS, you must run:
@@ -276,3 +290,4 @@ Evolutionary Computation 32.3 (2024): 205-210.
 [^12]: Hansen, Nikolaus, et al. "COCO: A platform for comparing continuous optimizers in a black-box setting."
 Optimization Methods and Software 36.1 (2021): 114-144.
 [^13]: Each category has 5 possible values. The benchmark expects an integer between 0 and 4 for each category.
+[^14]: Ryu, Seunghee, et al. "BO4Mob: Bayesian Optimization Benchmarks for High-Dimensional Urban Mobility Problem." *arXiv preprint arXiv:2510.18824* (2025). For these benchmarks, values should be integers between 1 and 2500.
