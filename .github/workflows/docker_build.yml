@@ -41,30 +41,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: pip cache for docker
-        uses: actions/cache@v3
-        with:
-          path: pip-build-cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
-
-      - name: poetry cache for docker
-        uses: actions/cache@v3
-        with:
-          path: poetry-build-cache
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/pyproject.toml') }}
-
-      - name: inject poetry cache
-        uses: reproducible-containers/buildkit-cache-dance@v2.1.2
-        with:
-          cache-source: poetry-build-cache
-          cache-target: /root/.cache/pypoetry
-
-      - name: inject pip cache
-        uses: reproducible-containers/buildkit-cache-dance@v2.1.2
-        with:
-          cache-source: pip-build-cache
-          cache-target: /root/.cache/pip
-
       - name: Build and export to Docker
         uses: docker/build-push-action@v6
         with:
