@@ -114,17 +114,17 @@ jobs:
             # run the client, print /opt/bencher.err if it fails
             uv run python3 run_all_benchmarks.py 
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        if: ${{ github.event_name != 'schedule' }}
-        with:
-          context: bencher
-          push: true
-          tags: ${{ env.LATEST_TAG }}
-          cache-from: type=gha
-          cache-to: type=gha
-          build-args: |
-            CACHEBUST=${{ github.sha }}
+      #- name: Build and push
+      #  uses: docker/build-push-action@v6
+      #  if: ${{ github.event_name != 'schedule' }}
+      #  with:
+      #    context: bencher
+      #    push: true
+      #    tags: ${{ env.LATEST_TAG }}
+      #    cache-from: type=gha
+      #    cache-to: type=gha
+      #    build-args: |
+      #      CACHEBUST=${{ github.sha }}
 
   build-test-singularity:
     runs-on: ubuntu-22.04
