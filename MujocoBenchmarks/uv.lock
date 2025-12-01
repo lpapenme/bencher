@@ -205,7 +205,7 @@ wheels = [
 [[package]]
 name = "mujoco-py"
 version = "2.1.2.14"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/LeoIV/mujoco-py.git#6c9ddab26a2d9dea367e8b56e7c4f94062414857" }
 dependencies = [
     { name = "cffi" },
     { name = "cython" },
@@ -213,10 +213,6 @@ dependencies = [
     { name = "glfw" },
     { name = "imageio" },
     { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b2/e8/858de82470a5e4f02431f582c8af431b6a13ccfa23c6990c622bb5270a8a/mujoco-py-2.1.2.14.tar.gz", hash = "sha256:eb5b14485acf80a3cf8c15f4b080c6a28a9f79e68869aa696d16cbd51ea7706f", size = 2381463, upload-time = "2021-11-19T00:21:32.043Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/e5/e7504cb2ded511910c2a2e8f9c9e28af075850eb03a5c5a8daee5d7d9517/mujoco_py-2.1.2.14-py3-none-any.whl", hash = "sha256:37c0b41bc0153a8a0eb3663103a67c60f65467753f74e4ff6e68b879f3e3a71f", size = 2429511, upload-time = "2021-11-19T00:21:28.53Z" },
 ]
 
 [[package]]
@@ -242,7 +238,7 @@ requires-dist = [
     { name = "cython", specifier = "<3.0" },
     { name = "gym", specifier = ">=0.24,<0.25" },
     { name = "mujoco", specifier = "==2.2.2" },
-    { name = "mujoco-py", specifier = "==2.1.2.14" },
+    { name = "mujoco-py", git = "https://github.com/LeoIV/mujoco-py.git" },
     { name = "numpy", specifier = ">=1.20.1,<2" },
 ]
 

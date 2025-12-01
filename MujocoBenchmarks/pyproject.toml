@@ -21,6 +21,9 @@ start-benchmark-service = "mujocobenchmarks.main:serve"
 
 [tool.uv]
 
+[tool.uv.sources]
+mujoco-py = { git = "https://github.com/LeoIV/mujoco-py.git" }
+
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
