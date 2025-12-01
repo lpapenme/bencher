@@ -126,7 +126,7 @@ jobs:
           # start instance
           # apptainer instance start bencher.sif bencher
           mkdir output
-            apptainer instance start --bind $(pwd)/output:/opt/bencher/BO4MobBenchmark/output bencher.sif bencherclient
+            apptainer instance start --bind $(pwd)/output:/opt/bencher/BO4MobBenchmark/src/bo4mobbenchmark/output bencher.sif bencherclient
       - name: run bencherclient
         run: |
           apptainer run instance://bencher python /opt/bencherclient/run_all_benchmarks.py
