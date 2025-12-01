@@ -24,7 +24,7 @@ wheels = [
 [[package]]
 name = "bo4mob"
 version = "0.1.0"
-source = { git = "https://github.com/lpapenme/BO4Mob.git#27e7a92037dc7f3703dd6cf461003c749c7702ff" }
+source = { git = "https://github.com/lpapenme/BO4Mob.git#31ed1b5cf0e55f14e3173abac2e4cad401a3a67e" }
 dependencies = [
     { name = "botorch" },
     { name = "lxml" },

@@ -1,10 +1,9 @@
 # Stage 1: The Builder
-# This stage installs all dependencies and prepares the application.
 FROM python:3.11-slim-bookworm AS builder
 
-# Set environment variables consistently across stages
-# Using ${VAR:-} syntax to avoid warnings if VAR is unset.
-ENV PYENV_ROOT="/root/.pyenv"
+# --- CHANGE 1: Move pyenv out of /root ---
+# We use /opt/pyenv so it is globally readable by any user (Docker or Apptainer)
+ENV PYENV_ROOT="/opt/pyenv"
 ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:/root/.local/bin:$PATH"
 ENV LANG=C.UTF-8 \
     MUJOCO_PY_MUJOCO_PATH=/opt/mujoco210 \
@@ -12,15 +11,12 @@ ENV LANG=C.UTF-8 \
     LIBSVMDATA_HOME=/tmp \
     SUMO_HOME=/usr/share/sumo
 
-# Group all dependency ARGs at the top for clarity
+# ... (Arg definitions and apt-get installs remain the same) ...
 ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
-# Added git for pyenv installation
 ARG RUNTIME_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
     libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig"
 
-# This entire layer for system dependencies will be cached after the first successful run.
-# Note: Removed undefined $BUILD_DEPENDENCIES variable from the original file
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends $PPA_DEPENDENCIES && \
     add-apt-repository -y ppa:sumo/stable && \
@@ -33,21 +29,22 @@ RUN curl https://pyenv.run | bash
 
 WORKDIR /opt
 
-# These layers for external tools are also highly cacheable.
+# ... (Mujoco install remains the same) ...
 RUN curl -LO https://github.com/google-deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz && \
     tar -xf mujoco210-linux-x86_64.tar.gz && \
     rm mujoco210-linux-x86_64.tar.gz
 
+# --- CHANGE 2: Install uv to a global location ---
+# By default uv installs to ~/.local/bin. We force it to /usr/local/bin
+ENV UV_INSTALL_DIR="/usr/local/bin"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Copy all your code at once. It's less granular for caching but guaranteed to work.
 COPY . /opt/bencher
 WORKDIR /opt/bencher
 
-# Install Python dependencies using pyenv and uv.
-# This loop checks each subdirectory for a .python-version file.
-# If found, it installs that Python version with pyenv and uses it to install dependencies with uv.
-# Mount pyenv's cache directory and uv's cache directory for faster subsequent builds.
+# --- CHANGE 3: Update Cache Mounts ---
+# Update cache mounts to point to the new location or keep them in root (caches are fine in root if only used during build)
+# Note: We must ensure the permissions of /opt/pyenv allow reading by others
 RUN --mount=type=cache,target=/root/.pyenv/cache \
     --mount=type=cache,target=/root/.cache \
     for dir in /opt/bencher/*; do \
@@ -56,7 +53,6 @@ RUN --mount=type=cache,target=/root/.pyenv/cache \
             if [ -f ".python-version" ]; then \
                 PYTHON_VERSION=$(cat .python-version | tr -d '[:space:]'); \
                 echo "Found .python-version in $(basename $dir), requires Python $PYTHON_VERSION"; \
-                # Check if the required Python version is already installed before trying to install
                 if ! pyenv versions --bare | grep -q "^${PYTHON_VERSION}$"; then \
                     echo "Installing Python $PYTHON_VERSION..."; \
                     pyenv install $PYTHON_VERSION; \
@@ -71,19 +67,21 @@ RUN --mount=type=cache,target=/root/.pyenv/cache \
         fi; \
     done
 
+# --- CHANGE 4: Permission Fix ---
+# Crucial for Apptainer: Ensure /opt/pyenv is readable by non-root users
+RUN chmod -R a+rX /opt/pyenv
 
-# Make the entrypoint executable
 COPY entrypoint.py /entrypoint.py
 RUN chmod +x /entrypoint.py
 
 # ---
 # Stage 2: The Final Image
-# This stage creates the final, small runtime image.
 FROM python:3.11-slim-bookworm AS final
 
-# Re-establish environment variables and set up the pyenv environment
-ENV PYENV_ROOT="/root/.pyenv"
-ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:/root/.local/bin:$PATH"
+# --- CHANGE 5: Environment variables in Final Stage ---
+ENV PYENV_ROOT="/opt/pyenv"
+# Removed /root/.local/bin from PATH as we moved uv to /usr/local/bin
+ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
 ENV LANG=C.UTF-8 \
     MUJOCO_PY_MUJOCO_PATH=/opt/mujoco210 \
     LD_LIBRARY_PATH="/opt/mujoco210/bin:/bin/usr/local/nvidia/lib64:/usr/lib/nvidia:${LD_LIBRARY_PATH-}" \
@@ -93,14 +91,12 @@ ENV UV_CACHE_DIR=/tmp/.uv-cache \
     UV_PYTHON_DOWNLOADS=never \
     PYTHONDONTWRITEBYTECODE=1
 
+# ... (Runtime dependency install remains the same) ...
 ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
-# Added git as a pyenv runtime dependency
 ARG RUNTIME_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
     libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig"
 
-
-# Install only the necessary RUNTIME and PPA dependencies.
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends $PPA_DEPENDENCIES && \
     add-apt-repository -y ppa:sumo/stable && \
@@ -108,13 +104,20 @@ RUN apt-get update -y && \
     apt-get install -y --no-install-recommends $RUNTIME_DEPENDENCIES && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy pre-built artifacts from the 'builder' stage
 COPY --from=builder /opt/mujoco210 /opt/mujoco210
-COPY --from=builder /root/.local/bin/uv /root/.local/bin/uv
-# Copy the entire pyenv installation, including all installed Python versions
-COPY --from=builder /root/.pyenv /root/.pyenv
+
+# --- CHANGE 6: Copy uv from /usr/local/bin ---
+COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
+
+# --- CHANGE 7: Copy pyenv to /opt/pyenv ---
+COPY --from=builder /opt/pyenv /opt/pyenv
+
 COPY --from=builder /opt/bencher /opt/bencher
 COPY --from=builder /entrypoint.py /entrypoint.py
+
+# --- CHANGE 8: Final Permission sanity check ---
+# Just to be absolutely sure permissions didn't get messed up during COPY
+RUN chmod -R a+rX /opt/pyenv /opt/bencher
 
 WORKDIR /opt/bencher
 EXPOSE 50051
