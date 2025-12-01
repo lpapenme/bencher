@@ -1,5 +1,6 @@
 import glob
 import logging
+import os
 import re
 import shutil
 import tempfile
@@ -70,8 +71,14 @@ class BO4MOBServiceServicer(GRCPService):
                 # just get nrmse value via the filename
                 nrmse_value = float(re.search(r"NRMSE_(\d+\.\d+).txt", nrmse_file).group(1))
             finally:
-                # clean up output folder to save space
-                shutil.rmtree("output")
+                # remove everything within the output folder but not the output folder itself
+                output_dir = "output"
+                for item in os.listdir(output_dir):
+                    item_path = os.path.join(output_dir, item)
+                    if os.path.isdir(item_path):
+                        shutil.rmtree(item_path)
+                    else:
+                        os.remove(item_path)
         result = EvaluationResult(
             value=nrmse_value
         )
