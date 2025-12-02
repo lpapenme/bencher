@@ -7,7 +7,7 @@ import tempfile
 from platform import machine
 
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.protoclasses.grcp_service import GRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService
 
 directory_file_descriptor = tempfile.TemporaryDirectory()
 directory_name = directory_file_descriptor.name
@@ -129,7 +129,7 @@ def download_mopta_executable(
         print(f"Downloaded {executable_name}")
 
 
-class NoDependencyServiceServicer(GRCPService):
+class NoDependencyServiceServicer(DualStackGRCPService):
 
     def __init__(
             self

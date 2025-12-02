@@ -1,5 +1,5 @@
 # Stage 1: The Builder
-FROM python:3.11-slim-bookworm AS builder
+FROM debian:bookworm-slim AS builder
 
 # --- CHANGE 1: Move pyenv out of /root ---
 # We use /opt/pyenv so it is globally readable by any user (Docker or Apptainer)
@@ -76,7 +76,7 @@ RUN chmod +x /entrypoint.py
 
 # ---
 # Stage 2: The Final Image
-FROM python:3.11-slim-bookworm AS final
+FROM debian:bookworm-slim AS final
 
 # --- CHANGE 5: Environment variables in Final Stage ---
 ENV PYENV_ROOT="/opt/pyenv"

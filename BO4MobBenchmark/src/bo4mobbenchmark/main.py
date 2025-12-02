@@ -8,7 +8,7 @@ from importlib import resources
 
 import pandas as pd
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.protoclasses.grcp_service import GRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService
 from bo4mob import single_od_run
 
 # our benchmarks will have names like 1ramp_221008_08-09_count where everything after 1ramp can vary
@@ -22,7 +22,7 @@ valid_benchmark_expressions = [
 ]
 
 
-class BO4MOBServiceServicer(GRCPService):
+class BO4MOBServiceServicer(DualStackGRCPService):
 
     def __init__(
             self

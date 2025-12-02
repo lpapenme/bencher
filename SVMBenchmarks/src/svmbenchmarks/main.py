@@ -8,7 +8,7 @@ from typing import Optional, Callable, Tuple
 import math
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.protoclasses.grcp_service import GRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService
 from numpy.random import RandomState
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
@@ -117,7 +117,7 @@ def load_data_53(
     return train_x, train_y, test_x, test_y
 
 
-class SvmServiceServicer(GRCPService):
+class SvmServiceServicer(DualStackGRCPService):
     """
     This class is a GRCP service for SVM evaluation.
 

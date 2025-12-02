@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import EvaluationResult, BenchmarkRequest
-from bencherscaffold.protoclasses.grcp_service import GRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService
 from ebo.test_functions.push_function import PushReward
 from ebo.test_functions.rover_function import create_large_domain
 from ebo.test_functions.rover_utils import RoverDomain
@@ -15,7 +15,7 @@ def eval_lasso(
     return benchmark.evaluate(x)
 
 
-class EboServiceServicer(GRCPService):
+class EboServiceServicer(DualStackGRCPService):
 
     def __init__(
             self

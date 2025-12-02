@@ -3,12 +3,12 @@ import logging
 import ioh.iohcpp
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.protoclasses.grcp_service import GRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService
 from ioh import get_problem, ProblemClass
 from ioh.iohcpp.problem import MaxCoverage
 
 
-class IOHServiceServicer(GRCPService):
+class IOHServiceServicer(DualStackGRCPService):
 
     def __init__(
             self

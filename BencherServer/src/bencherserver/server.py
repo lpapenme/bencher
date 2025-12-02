@@ -31,6 +31,7 @@ class BencherServer(BencherServicer):
     def register_stub(
             self,
             names: list[str],
+            host: str,
             port: int
     ):
         """
@@ -38,13 +39,15 @@ class BencherServer(BencherServicer):
 
         Args:
             names (list[str]): A list of names to register the stub.
+            host (str): The host on which the stub is running.
             port (int): The port on which the stub is running.
 
         Returns:
             None
         """
+        target = f"{host}:{port}"
         stub = second_level_services_pb2_grpc.SecondLevelBencherStub(
-            grpc.insecure_channel(f"0.0.0.0:{port}")
+            grpc.insecure_channel(target)
         )
         for name in names:
             assert name not in self.stubs, f"Name {name} already registered"

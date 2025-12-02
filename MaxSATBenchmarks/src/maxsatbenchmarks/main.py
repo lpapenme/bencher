@@ -7,7 +7,7 @@ import tempfile
 from functools import lru_cache
 
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.protoclasses.grcp_service import GRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService
 
 from maxsatbenchmarks.data_loading import download_maxsat60_data, download_maxsat125_data
 from maxsatbenchmarks.wcnf import WCNF
@@ -73,7 +73,7 @@ def eval(
     return fx
 
 
-class MaxSATServiceServicer(GRCPService):
+class MaxSATServiceServicer(DualStackGRCPService):
     """
     MaxSATServiceServicer class for maximum satisfiability problem service.
 
