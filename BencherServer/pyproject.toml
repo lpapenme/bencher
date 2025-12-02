@@ -8,7 +8,7 @@ readme = "README.md"
 dependencies = [
     "grpcio>=1.60.1,<2",
     "protobuf>=4.25.2,<5",
-    "bencherscaffold>=0.3.1,<0.4",
+    "bencherscaffold~=0.4.0",
 ]
 
 [project.scripts]

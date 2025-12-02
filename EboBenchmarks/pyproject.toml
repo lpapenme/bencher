@@ -7,7 +7,7 @@ requires-python = "~=3.8.0"
 readme = "README.md"
 dependencies = [
     "ebo",
-    "bencherscaffold>=0.3.1,<0.4",
+    "bencherscaffold~=0.4.0",
     "numpy>=1.20.1,<2",
 ]
 

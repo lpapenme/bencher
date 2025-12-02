@@ -6,7 +6,7 @@ authors = [{ name = "Leonard Papenmeier", email = "leonard.papenmeier@gmail.com"
 requires-python = "~=3.11.0"
 readme = "README.md"
 dependencies = [
-    "bencherscaffold>=0.3.1,<0.4",
+    "bencherscaffold~=0.4.0",
     "numpy>=1.26.4,<2",
     "requests>=2.31.0,<3",
     "scikit-learn>=1.4.0,<2",

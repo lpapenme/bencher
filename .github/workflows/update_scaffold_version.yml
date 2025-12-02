@@ -48,7 +48,7 @@ jobs:
                 uv cache clean; \
                 uv lock --upgrade-package bencherscaffold; \
               fi; \
-              git add uv.lock; \
+              git add uv.lock || echo "No changes to uv.lock in $(basename $dir)"; \
               cd ..; \
             fi; \
           done
