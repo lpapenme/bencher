@@ -37,7 +37,7 @@ jobs:
             if [ -d "$dir" ]; then \
               echo "Processing $dir"; \
               cd $dir; \
-              if [ -f "$dir/.python-version" ]; then \
+              if [ -f ".python-version" ]; then \
                 PYTHON_VERSION=$(cat .python-version | tr -d '[:space:]'); \
                 echo "Found .python-version in $(basename $dir), requires Python $PYTHON_VERSION"; \
                 if ! pyenv versions --bare | grep -q "^${PYTHON_VERSION}$"; then \
