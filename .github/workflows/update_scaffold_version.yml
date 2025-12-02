@@ -36,17 +36,23 @@ jobs:
           for dir in *; do \
             if [ -d "$dir" ]; then \
               echo "Processing $dir"; \
-              if [ -f "$dir/.python-version" ]; then \
-                cd $dir && \
-                pyenv install $(cat .python-version) || echo "pyenv already installed version $(cat .python-version)" && \
-                PATH="$PYENV_ROOT/shims:$PATH" && \
-                cd ..; \
-              fi; \
               cd $dir && \
-              uv cache clean && \
-              uv lock --upgrade-package bencherscaffold && \
+              if [ -f "$dir/.python-version" ]; then \
+                PYTHON_VERSION=$(cat .python-version | tr -d '[:space:]'); \
+                echo "Found .python-version in $(basename $dir), requires Python $PYTHON_VERSION"; \
+                if ! pyenv versions --bare | grep -q "^${PYTHON_VERSION}$"; then \
+                    echo "Installing Python $PYTHON_VERSION..."; \
+                    pyenv install $PYTHON_VERSION; \
+                fi; \
+                PYENV_VERSION=$PYTHON_VERSION uv cache clean && \
+                PYENV_VERSION=$PYTHON_VERSION uv lock --upgrade-package bencherscaffold && \
+              else \
+                echo "No .python-version file found in $(basename $dir), using default Python version"; \
+                uv cache clean && \
+                uv lock --upgrade-package bencherscaffold && \
+              fi && \
               git add uv.lock && \
-              cd $GITHUB_WORKSPACE; \
+              cd ..; \
             fi; \
           done
 
