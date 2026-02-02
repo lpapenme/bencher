@@ -12,7 +12,7 @@ resolution-markers = [
 
 [[package]]
 name = "bencherscaffold"
-version = "0.4.5"
+version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "grpcio", version = "1.70.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
@@ -20,9 +20,9 @@ dependencies = [
     { name = "protobuf", version = "4.25.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
     { name = "protobuf", version = "6.31.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9b/3c/46654e4cdab903959e1c178b29df2cfc7a8fbf0cf03ed5ddd57f7a3786e3/bencherscaffold-0.4.5.tar.gz", hash = "sha256:0f32a98f4f4f23849988b4552a1681971ca5fb5c3300069d20d156e32e53a9d5", size = 6184, upload-time = "2026-02-02T10:36:18.36Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/0c/3e15b249ae85d812acb4b7aafa6567cc9eada2a2392be08996df65ed2c44/bencherscaffold-0.4.6.tar.gz", hash = "sha256:c1c66856e469fddd471c12553016cebb92babb1145babd3de507a27438720863", size = 6035, upload-time = "2026-02-02T11:23:30.891Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/34/81/9bf91a9ba7d333c460ee6cd77924491ccb4137637a2903766591133bbd9f/bencherscaffold-0.4.5-py3-none-any.whl", hash = "sha256:edcc16eb65eeb60ef8af3d039361529c8c7471b28f3d5e4713a9538866974a29", size = 11287, upload-time = "2026-02-02T10:36:13.738Z" },
+    { url = "https://files.pythonhosted.org/packages/47/95/f8de4a392a7300510998742125d8986cbe99d6a8ed49bc7dfbb6b802ec54/bencherscaffold-0.4.6-py3-none-any.whl", hash = "sha256:e227f86bc2f243548037fe62f8c2d76d7faf046589142a744d845ed20be689cc", size = 11047, upload-time = "2026-02-02T11:23:29.38Z" },
 ]
 
 [[package]]
@@ -35,8 +35,8 @@ dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "pandas" },
-    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
 ]
 
 [[package]]
@@ -47,8 +47,8 @@ dependencies = [
     { name = "bencherscaffold" },
     { name = "bo4mob" },
     { name = "pandas" },
-    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
 ]
 
 [package.metadata]
@@ -71,8 +71,8 @@ dependencies = [
     { name = "pyro-ppl" },
     { name = "scipy" },
     { name = "threadpoolctl" },
-    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/23/fa/880f563f6c8323ab3bec0efcb775f70053d6abf06dfd4d8f1417859c5dc5/botorch-0.13.0.tar.gz", hash = "sha256:9672b03c3a95b88d6b500371797f51f503232bdc19d495119769994fa811ebc4", size = 1515229, upload-time = "2025-02-03T16:53:02.635Z" }
@@ -490,8 +490,8 @@ dependencies = [
     { name = "jaxtyping" },
     { name = "mpmath" },
     { name = "scipy" },
-    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c2/e9/c900e42b989e5778d0a28bb28aa63a5cef4f7e2f1af34b9de6157da77913/linear_operator-0.6.tar.gz", hash = "sha256:a9e2663879f1a2b28631bf7ef34892c4e5749893e711c8ef0ab0a39aff70a654", size = 185103, upload-time = "2025-01-28T23:13:58.745Z" }
 wheels = [
@@ -981,8 +981,8 @@ dependencies = [
     { name = "numpy" },
     { name = "opt-einsum" },
     { name = "pyro-api" },
-    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "torch", version = "2.6.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "torch", version = "2.6.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
     { name = "tqdm" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/4c/2e/3bcba8688d58f8dc954cef6831c19d52b6017b035d783685d67cd99fa351/pyro_ppl-1.9.1.tar.gz", hash = "sha256:5e1596de276c038a3f77d2580a90d0a97126e0104900444a088eee620bb0d65e", size = 570861, upload-time = "2024-06-02T00:37:39.688Z" }
@@ -1165,18 +1165,17 @@ name = "torch"
 version = "2.6.0"
 source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
-    "python_full_version >= '3.14' and sys_platform == 'darwin'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'darwin'",
     "python_full_version < '3.12' and sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "filelock", marker = "sys_platform == 'darwin'" },
-    { name = "fsspec", marker = "sys_platform == 'darwin'" },
-    { name = "jinja2", marker = "sys_platform == 'darwin'" },
-    { name = "networkx", marker = "sys_platform == 'darwin'" },
-    { name = "setuptools", marker = "python_full_version >= '3.12' and sys_platform == 'darwin'" },
-    { name = "sympy", marker = "sys_platform == 'darwin'" },
-    { name = "typing-extensions", marker = "sys_platform == 'darwin'" },
+    { name = "filelock", marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "fsspec", marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "jinja2", marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "networkx", marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "setuptools", marker = "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "sympy", marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.14' and sys_platform == 'darwin'" },
 ]
 wheels = [
     { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:94fc63b3b4bedd327af588696559f68c264440e2503cc9e6954019473d74ae21" },
@@ -1191,16 +1190,17 @@ source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform != 'darwin'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'darwin'",
+    "python_full_version >= '3.14' and sys_platform == 'darwin'",
     "python_full_version < '3.12' and sys_platform != 'darwin'",
 ]
 dependencies = [
-    { name = "filelock", marker = "sys_platform != 'darwin'" },
-    { name = "fsspec", marker = "sys_platform != 'darwin'" },
-    { name = "jinja2", marker = "sys_platform != 'darwin'" },
-    { name = "networkx", marker = "sys_platform != 'darwin'" },
-    { name = "setuptools", marker = "python_full_version >= '3.12' and sys_platform != 'darwin'" },
-    { name = "sympy", marker = "sys_platform != 'darwin'" },
-    { name = "typing-extensions", marker = "sys_platform != 'darwin'" },
+    { name = "filelock", marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
+    { name = "fsspec", marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
+    { name = "jinja2", marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
+    { name = "networkx", marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
+    { name = "setuptools", marker = "(python_full_version >= '3.12' and sys_platform != 'darwin') or (python_full_version >= '3.14' and sys_platform == 'darwin')" },
+    { name = "sympy", marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
+    { name = "typing-extensions", marker = "python_full_version >= '3.14' or sys_platform != 'darwin'" },
 ]
 wheels = [
     { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp311-cp311-linux_x86_64.whl", hash = "sha256:5b6ae523bfb67088a17ca7734d131548a2e60346c622621e4248ed09dd0790cc" },
