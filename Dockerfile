@@ -67,6 +67,16 @@ RUN --mount=type=cache,target=/root/.pyenv/cache \
         fi; \
     done
 
+# Pre-fetch MaxSAT datasets into the package data directory
+RUN cd /opt/bencher/MaxSATBenchmarks && \
+    uv run python - <<'PY'
+from maxsatbenchmarks.main import directory_name
+from maxsatbenchmarks.data_loading import download_maxsat60_data, download_maxsat125_data
+
+download_maxsat60_data(directory_name)
+download_maxsat125_data(directory_name)
+PY
+
 # --- CHANGE 4: Permission Fix ---
 # Crucial for Apptainer: Ensure /opt/pyenv is readable by non-root users
 RUN chmod -R a+rX /opt/pyenv
@@ -114,6 +124,14 @@ COPY --from=builder /opt/pyenv /opt/pyenv
 
 COPY --from=builder /opt/bencher /opt/bencher
 COPY --from=builder /entrypoint.py /entrypoint.py
+
+# Pre-fetch libsvm datasets into /tmp to avoid download at runtime using LassoBenchmarks env
+RUN cd /opt/bencher/LassoBenchmarks && \
+    LIBSVMDATA_HOME=/tmp uv run python - <<'PY'
+from libsvmdata import fetch_libsvm
+for name in ["diabetes_scale", "breast-cancer_scale", "leukemia_test", "rcv1.binary", "dna"]:
+    fetch_libsvm(name)
+PY
 
 # --- CHANGE 8: Final Permission sanity check ---
 # Just to be absolutely sure permissions didn't get messed up during COPY

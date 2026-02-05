@@ -3,7 +3,7 @@ import threading
 import logging
 import numpy as np
 import os
-import tempfile
+import pathlib
 from functools import lru_cache
 
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
@@ -12,8 +12,9 @@ from bencherscaffold.dual_stack_service import DualStackGRCPService
 from maxsatbenchmarks.data_loading import download_maxsat60_data, download_maxsat125_data
 from maxsatbenchmarks.wcnf import WCNF
 
-directory_file_descriptor = tempfile.TemporaryDirectory()
-directory_name = directory_file_descriptor.name
+DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data" / "maxsat"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+directory_name = str(DATA_DIR)
 
 filename_map = {
     'maxsat60' : 'frb10-6-4.wcnf',
