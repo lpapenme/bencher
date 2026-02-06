@@ -1,4 +1,12 @@
-[![Docker Build](https://github.com/LeoIV/bencher/actions/workflows/docker_build.yml/badge.svg)](https://github.com/LeoIV/bencher/actions/workflows/docker_build.yml)
+<!-- Builds currently failing due to the container size exceeding the size of gh runners -->
+<!-- # [![Docker Build](https://github.com/LeoIV/bencher/actions/workflows/docker_build.yml/badge.svg)](https://github.com/LeoIV/bencher/actions/workflows/docker_build.yml) -->
+
+Bencher is a lightweight benchmarking framework for black-box optimization designed to make *benchmark execution* simple and reproducible, without forcing benchmark dependencies into your optimizer’s environment. It follows a client–server architecture: benchmarks run in an isolated, containerized server, while optimizers communicate with the server through a stable gRPC interface via a small Python client (`bencherscaffold`).
+
+Each benchmark (or compatible benchmark group) is executed in its own dedicated Python environment, which avoids dependency conflicts and makes it easy to mix benchmarks with different (and sometimes outdated) requirements. The Bencher server can be deployed locally via Docker or on HPC systems via Singularity/Apptainer, enabling the same benchmark setup across machines and runs. This repository contains the Bencher server and the benchmark implementations
+
+* See the paper for details: https://arxiv.org/abs/2505.21321
+* See this blogpost for an example of how you can integrate `bencher` in your workflow: https://leonard.papenmeier.io/2026/02/05/adding-bencher-to-existing-code.html
 
 # Docker Container
 
