@@ -9,8 +9,14 @@ from platform import machine
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
 from bencherscaffold.dual_stack_service import DualStackGRCPService
 
-directory_file_descriptor = tempfile.TemporaryDirectory()
-directory_name = directory_file_descriptor.name
+_env_directory = os.environ.get("MOPTA_DATA_DIR")
+if _env_directory:
+    os.makedirs(_env_directory, exist_ok=True)
+    directory_file_descriptor = None
+    directory_name = _env_directory
+else:
+    directory_file_descriptor = tempfile.TemporaryDirectory()
+    directory_name = directory_file_descriptor.name
 
 SUPPORTED_BENCHMARKS = [
     'mopta08',

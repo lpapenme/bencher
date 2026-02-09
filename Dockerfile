@@ -9,6 +9,8 @@ ENV LANG=C.UTF-8 \
     MUJOCO_PY_MUJOCO_PATH=/opt/mujoco210 \
     LD_LIBRARY_PATH="/opt/mujoco210/bin:/bin/usr/local/nvidia/lib64:/usr/lib/nvidia:${LD_LIBRARY_PATH-}" \
     LIBSVMDATA_HOME=/tmp \
+    MOPTA_DATA_DIR=/opt/bencher/NoDependencyBenchmark/data \
+    SVM_DATA_DIR=/tmp/svmbenchmarks \
     SUMO_HOME=/usr/share/sumo
 
 # ... (Arg definitions and apt-get installs remain the same) ...
@@ -96,6 +98,8 @@ ENV LANG=C.UTF-8 \
     MUJOCO_PY_MUJOCO_PATH=/opt/mujoco210 \
     LD_LIBRARY_PATH="/opt/mujoco210/bin:/bin/usr/local/nvidia/lib64:/usr/lib/nvidia:${LD_LIBRARY_PATH-}" \
     LIBSVMDATA_HOME=/tmp \
+    MOPTA_DATA_DIR=/opt/bencher/NoDependencyBenchmark/data \
+    SVM_DATA_DIR=/tmp/svmbenchmarks \
     SUMO_HOME=/usr/share/sumo
 ENV UV_CACHE_DIR=/tmp/.uv-cache \
     UV_PYTHON_DOWNLOADS=never \
@@ -131,6 +135,25 @@ RUN cd /opt/bencher/LassoBenchmarks && \
 from libsvmdata import fetch_libsvm
 for name in ["diabetes_scale", "breast-cancer_scale", "leukemia_test", "rcv1.binary", "dna"]:
     fetch_libsvm(name)
+PY
+
+# Pre-fetch SVM slice localization dataset into the configured directory
+RUN cd /opt/bencher/SVMBenchmarks && \
+    SVM_DATA_DIR=/tmp/svmbenchmarks uv run python - <<'PY'
+from svmbenchmarks.main import download_slice_localization_data
+download_slice_localization_data()
+PY
+
+# Pre-fetch MOPTA executable into the configured directory
+RUN cd /opt/bencher/NoDependencyBenchmark && \
+    MOPTA_DATA_DIR=/opt/bencher/NoDependencyBenchmark/data uv run python - <<'PY'
+from nodependencybenchmark.main import download_mopta_executable
+from nodependencybenchmark.main import NoDependencyServiceServicer
+
+import os
+os.makedirs(os.environ["MOPTA_DATA_DIR"], exist_ok=True)
+servicer = NoDependencyServiceServicer()
+download_mopta_executable(servicer._mopta_exectutable_basename)
 PY
 
 # --- CHANGE 8: Final Permission sanity check ---

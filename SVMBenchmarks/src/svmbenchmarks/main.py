@@ -14,8 +14,14 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
 from xgboost import XGBRegressor
 
-directory_file_descriptor = tempfile.TemporaryDirectory()
-directory_name = directory_file_descriptor.name
+_env_directory = os.environ.get("SVM_DATA_DIR")
+if _env_directory:
+    os.makedirs(_env_directory, exist_ok=True)
+    directory_file_descriptor = None
+    directory_name = _env_directory
+else:
+    directory_file_descriptor = tempfile.TemporaryDirectory()
+    directory_name = directory_file_descriptor.name
 lock = threading.Lock()
 
 
