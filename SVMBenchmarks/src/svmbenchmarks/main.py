@@ -3,6 +3,7 @@ import lzma
 import os
 import tempfile
 import threading
+from argparse import ArgumentParser
 from typing import Optional, Callable, Tuple
 
 import math
@@ -136,9 +137,10 @@ class SvmServiceServicer(DualStackGRCPService):
     """
 
     def __init__(
-            self
+            self,
+            port: int = 50058
     ):
-        super().__init__(port=50058)
+        super().__init__(port=port)
         self.data_initialized = None
 
     def initialize_data(
@@ -211,8 +213,18 @@ class SvmServiceServicer(DualStackGRCPService):
 
 
 def serve():
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-p', '--port',
+        type=int,
+        default=int(os.environ.get('BENCHER_SVM_PORT', 50058)),
+        help='The port number to start the server on. Default is 50058. '
+             'Can also be set via the BENCHER_SVM_PORT environment variable.',
+    )
+    args = parser.parse_args()
+
     logging.basicConfig()
-    svm = SvmServiceServicer()
+    svm = SvmServiceServicer(port=args.port)
     svm.serve()
 
 

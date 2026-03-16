@@ -12,6 +12,7 @@ Each benchmark (or compatible benchmark group) is executed in its own dedicated 
 
 The Docker container can be pulled from the [Docker Hub](https://hub.docker.com/r/gaunab/bencher) or built locally.
 It contains all benchmarks and dependencies and exposes the benchmark server via port 50051.
+All service ports are configurable via environment variables (see [Port Configuration](#port-configuration)).
 
 We give an exemplary usage of the Docker container in the [bencherclient](https://github.com/LeoIV/bencherclient)
 repository.
@@ -29,6 +30,64 @@ docker run -p 50051:50051 --restart always -d bencher:latest
 docker pull gaunab/bencher:latest
 # always keep the container running, can be stopped with docker stop <container-id>
 docker run -p 50051:50051 --restart always -d gaunab/bencher:latest
+```
+
+## Port Configuration
+
+Every service reads its listening port from an environment variable, falling back to the
+built-in default when the variable is not set. Each service also accepts a `--port` / `-p`
+CLI argument, which takes the highest priority.
+
+**Priority**: CLI argument > environment variable > hardcoded default.
+
+| Service              | Environment Variable      | Default Port |
+|----------------------|---------------------------|--------------|
+| BencherServer        | `BENCHER_SERVER_PORT`     | 50051        |
+| LassoBenchmarks      | `BENCHER_LASSO_PORT`      | 50053        |
+| NoDependencyBenchmark| `BENCHER_NODEP_PORT`      | 50054        |
+| MaxSATBenchmarks     | `BENCHER_MAXSAT_PORT`     | 50055        |
+| EboBenchmarks        | `BENCHER_EBO_PORT`        | 50056        |
+| MujocoBenchmarks     | `BENCHER_MUJOCO_PORT`     | 50057        |
+| SVMBenchmarks        | `BENCHER_SVM_PORT`        | 50058        |
+| IOHBenchmarks        | `BENCHER_IOH_PORT`        | 50059        |
+| BO4MobBenchmark      | `BENCHER_BO4MOB_PORT`     | 50060        |
+
+The BencherServer (the main entry point for clients) also honours these variables when
+connecting to the backend benchmark services, so changing a single variable is enough to
+move a service to a different port.
+
+### Docker example
+
+```shell
+# Move the client-facing BencherServer to port 60051 and expose it on the host
+docker run \
+  -e BENCHER_SERVER_PORT=60051 \
+  -p 60051:60051 \
+  --restart always -d bencher:latest
+```
+
+```shell
+# Move both the BencherServer and the Lasso service to non-default ports
+docker run \
+  -e BENCHER_SERVER_PORT=60051 \
+  -e BENCHER_LASSO_PORT=60053 \
+  -p 60051:60051 \
+  --restart always -d bencher:latest
+```
+
+### Apptainer / Singularity example
+
+```shell
+# Pass environment variables via APPTAINERENV_ prefix
+export APPTAINERENV_BENCHER_SERVER_PORT=60051
+apptainer instance start container.sif bencher
+```
+
+```shell
+# Or inline
+APPTAINERENV_BENCHER_SERVER_PORT=60051 \
+APPTAINERENV_BENCHER_LASSO_PORT=60053 \
+  apptainer instance start container.sif bencher
 ```
 
 # Apptainer / Singularity Container

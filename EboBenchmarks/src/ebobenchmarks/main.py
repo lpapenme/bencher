@@ -1,4 +1,6 @@
 import logging
+import os
+from argparse import ArgumentParser
 
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import EvaluationResult, BenchmarkRequest
@@ -18,9 +20,10 @@ def eval_lasso(
 class EboServiceServicer(DualStackGRCPService):
 
     def __init__(
-            self
+            self,
+            port: int = 50056
     ):
-        super().__init__(port=50056, n_cores=1)
+        super().__init__(port=port, n_cores=1)
         self._pr = PushReward()
 
         def l2cost(
@@ -64,8 +67,18 @@ class EboServiceServicer(DualStackGRCPService):
 
 
 def serve():
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-p', '--port',
+        type=int,
+        default=int(os.environ.get('BENCHER_EBO_PORT', 50056)),
+        help='The port number to start the server on. Default is 50056. '
+             'Can also be set via the BENCHER_EBO_PORT environment variable.',
+    )
+    args = parser.parse_args()
+
     logging.basicConfig()
-    ebo = EboServiceServicer()
+    ebo = EboServiceServicer(port=args.port)
     ebo.serve()
 
 

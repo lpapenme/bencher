@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import tempfile
+from argparse import ArgumentParser
 from importlib import resources
 
 import pandas as pd
@@ -25,9 +26,10 @@ valid_benchmark_expressions = [
 class BO4MOBServiceServicer(DualStackGRCPService):
 
     def __init__(
-            self
+            self,
+            port: int = 50060
     ):
-        super().__init__(port=50060, n_cores=1)
+        super().__init__(port=port, n_cores=1)
 
     def evaluate_point(
             self,
@@ -86,8 +88,18 @@ class BO4MOBServiceServicer(DualStackGRCPService):
 
 
 def serve():
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-p', '--port',
+        type=int,
+        default=int(os.environ.get('BENCHER_BO4MOB_PORT', 50060)),
+        help='The port number to start the server on. Default is 50060. '
+             'Can also be set via the BENCHER_BO4MOB_PORT environment variable.',
+    )
+    args = parser.parse_args()
+
     logging.basicConfig()
-    bo4mob = BO4MOBServiceServicer()
+    bo4mob = BO4MOBServiceServicer(port=args.port)
     bo4mob.serve()
 
 

@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: gaunab/bencher:latest
+From: docker.papenmeier.io/bencher:latest
 Namespace:
 Stage: build
 
@@ -16,8 +16,11 @@ Stage: build
     cd /opt
     export POETRY_VIRTUALENVS_PATH=/opt/virtualenvs
     export POETRY_HOME=/opt/poetry
-    curl -sSL https://install.python-poetry.org | python3.11 -
+    curl -sSL https://install.python-poetry.org | python3 -
     export PATH="/opt/poetry/bin:$PATH"
+
+    pyenv global 3.11.13
+    pyenv rehash
 
     cd /opt
     git clone --depth 1 https://github.com/LeoIV/bencherclient.git
