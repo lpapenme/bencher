@@ -19,6 +19,9 @@ Stage: build
     curl -sSL https://install.python-poetry.org | python3 -
     export PATH="/opt/poetry/bin:$PATH"
 
+    pyenv global 3.11.13
+    pyenv rehash
+
     cd /opt
     git clone --depth 1 https://github.com/LeoIV/bencherclient.git
     cd bencherclient
