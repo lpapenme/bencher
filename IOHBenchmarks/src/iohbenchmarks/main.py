@@ -1,4 +1,6 @@
 import logging
+import os
+from argparse import ArgumentParser
 
 import ioh.iohcpp
 import numpy as np
@@ -11,9 +13,10 @@ from ioh.iohcpp.problem import MaxCoverage
 class IOHServiceServicer(DualStackGRCPService):
 
     def __init__(
-            self
+            self,
+            port: int = 50059
     ):
-        super().__init__(port=50059, n_cores=1)
+        super().__init__(port=port, n_cores=1)
 
     def evaluate_point(
             self,
@@ -87,9 +90,19 @@ class IOHServiceServicer(DualStackGRCPService):
 
 
 def serve():
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-p', '--port',
+        type=int,
+        default=int(os.environ.get('BENCHER_IOH_PORT', 50059)),
+        help='The port number to start the server on. Default is 50059. '
+             'Can also be set via the BENCHER_IOH_PORT environment variable.',
+    )
+    args = parser.parse_args()
+
     logging.basicConfig()
-    ioh = IOHServiceServicer()
-    ioh.serve()
+    ioh_service = IOHServiceServicer(port=args.port)
+    ioh_service.serve()
 
 
 if __name__ == '__main__':

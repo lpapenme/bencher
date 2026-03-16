@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from argparse import ArgumentParser
 from platform import machine
 
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
@@ -132,9 +133,10 @@ def download_mopta_executable(
 class NoDependencyServiceServicer(DualStackGRCPService):
 
     def __init__(
-            self
+            self,
+            port: int = 50054
     ):
-        super().__init__(port=50054, n_cores=1)
+        super().__init__(port=port, n_cores=1)
 
         self.sysarch = 64 if sys.maxsize > 2 ** 32 else 32
         self.machine = machine().lower()
@@ -240,8 +242,18 @@ class NoDependencyServiceServicer(DualStackGRCPService):
 
 
 def serve():
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-p', '--port',
+        type=int,
+        default=int(os.environ.get('BENCHER_NODEP_PORT', 50054)),
+        help='The port number to start the server on. Default is 50054. '
+             'Can also be set via the BENCHER_NODEP_PORT environment variable.',
+    )
+    args = parser.parse_args()
+
     logging.basicConfig()
-    nodep = NoDependencyServiceServicer()
+    nodep = NoDependencyServiceServicer(port=args.port)
     nodep.serve()
 
 

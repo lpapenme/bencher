@@ -11,6 +11,20 @@ from bencherscaffold.protoclasses import bencher_pb2_grpc
 
 from bencherserver.server import BencherServer
 
+# Mapping of default benchmark service ports to their environment variable overrides.
+# When a benchmark in the registry uses one of these default ports, the corresponding
+# env var (if set) will override it so the BencherServer connects to the right place.
+_BENCHMARK_PORT_ENV_VARS: dict[int, str] = {
+    50053: 'BENCHER_LASSO_PORT',
+    50054: 'BENCHER_NODEP_PORT',
+    50055: 'BENCHER_MAXSAT_PORT',
+    50056: 'BENCHER_EBO_PORT',
+    50057: 'BENCHER_MUJOCO_PORT',
+    50058: 'BENCHER_SVM_PORT',
+    50059: 'BENCHER_IOH_PORT',
+    50060: 'BENCHER_BO4MOB_PORT',
+}
+
 
 def serve():
     argparse = ArgumentParser()
@@ -19,8 +33,9 @@ def serve():
         '--port',
         type=int,
         required=False,
-        help='The port number to start the server on. Default is 50051.',
-        default=50051
+        help='The port number to start the server on. Default is 50051. '
+             'Can also be set via the BENCHER_SERVER_PORT environment variable.',
+        default=int(os.environ.get('BENCHER_SERVER_PORT', 50051))
     )
     argparse.add_argument(
         '-c',
@@ -50,6 +65,9 @@ def serve():
 
     for benchmark_name, properties in benchmark_names_to_properties.items():
         port = properties['port']
+        env_var = _BENCHMARK_PORT_ENV_VARS.get(port)
+        if env_var:
+            port = int(os.environ.get(env_var, port))
         host = properties.get('host', 'localhost')
         targets_to_benchmarks[(host, port)].append(benchmark_name)
 

@@ -4,6 +4,7 @@ import logging
 import numpy as np
 import os
 import tempfile
+from argparse import ArgumentParser
 from functools import lru_cache
 
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
@@ -82,9 +83,10 @@ class MaxSATServiceServicer(DualStackGRCPService):
     """
 
     def __init__(
-            self
+            self,
+            port: int = 50055
     ):
-        super().__init__(port=50055)
+        super().__init__(port=port)
 
     @lru_cache(maxsize=2)
     def get_wcnf_weights_totalweight_clauseidxs_clauses(
@@ -162,8 +164,18 @@ class MaxSATServiceServicer(DualStackGRCPService):
 
 
 def serve():
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-p', '--port',
+        type=int,
+        default=int(os.environ.get('BENCHER_MAXSAT_PORT', 50055)),
+        help='The port number to start the server on. Default is 50055. '
+             'Can also be set via the BENCHER_MAXSAT_PORT environment variable.',
+    )
+    args = parser.parse_args()
+
     logging.basicConfig()
-    maxsat = MaxSATServiceServicer()
+    maxsat = MaxSATServiceServicer(port=args.port)
     maxsat.serve()
 
 

@@ -1,4 +1,6 @@
 import logging
+import os
+from argparse import ArgumentParser
 
 import LassoBench
 import numpy as np
@@ -38,9 +40,10 @@ benchmark_map = {
 class LassoServiceServicer(DualStackGRCPService):
 
     def __init__(
-            self
+            self,
+            port: int = 50053
     ):
-        super().__init__(port=50053, n_cores=1)
+        super().__init__(port=port, n_cores=1)
 
     def evaluate_point(
             self,
@@ -60,8 +63,18 @@ class LassoServiceServicer(DualStackGRCPService):
 
 
 def serve():
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-p', '--port',
+        type=int,
+        default=int(os.environ.get('BENCHER_LASSO_PORT', 50053)),
+        help='The port number to start the server on. Default is 50053. '
+             'Can also be set via the BENCHER_LASSO_PORT environment variable.',
+    )
+    args = parser.parse_args()
+
     logging.basicConfig()
-    lasso = LassoServiceServicer()
+    lasso = LassoServiceServicer(port=args.port)
     lasso.serve()
 
 
