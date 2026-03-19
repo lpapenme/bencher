@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: gaunab/bencher:latest
+From: docker.papenmeier.io/bencher:latest
 Namespace:
 Stage: build
 
