@@ -4,11 +4,12 @@ from argparse import ArgumentParser
 
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.dual_stack_service import DualStackGRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 from gym.envs.box2d import LunarLander
 
 from mujocobenchmarks.functions import func_factories
 
+LISTEN_HOST_ENV_VAR = 'BENCHER_MUJOCO_HOST'
 func_factory_map = {
     'mujoco-ant': lambda
         _: func_factories["ant"].make_object(),
@@ -66,9 +67,10 @@ class MujocoServiceServicer(DualStackGRCPService):
 
     def __init__(
             self,
-            port: int = 50057
+            port: int = 50057,
+            listen_hosts=None
     ):
-        super().__init__(port=port, n_cores=1)
+        super().__init__(port=port, n_cores=1, listen_hosts=listen_hosts)
 
     def evaluate_point(
             self,
@@ -92,7 +94,7 @@ class MujocoServiceServicer(DualStackGRCPService):
             s = env.reset()
             while True:
                 a = heuristic_controller(s, x.squeeze())
-                s, r, terminated, info = env.step(a)
+                s, r, terminated, _ = env.step(a)
                 total_reward += r
 
                 steps += 1
@@ -116,10 +118,11 @@ def serve():
         help='The port number to start the server on. Default is 50057. '
              'Can also be set via the BENCHER_MUJOCO_PORT environment variable.',
     )
+    add_listen_argument(parser, env_var=LISTEN_HOST_ENV_VAR)
     args = parser.parse_args()
 
     logging.basicConfig()
-    mujoco = MujocoServiceServicer(port=args.port)
+    mujoco = MujocoServiceServicer(port=args.port, listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR))
     mujoco.serve()
 
 

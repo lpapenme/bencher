@@ -5,18 +5,20 @@ from argparse import ArgumentParser
 import ioh.iohcpp
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.dual_stack_service import DualStackGRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 from ioh import get_problem, ProblemClass
 from ioh.iohcpp.problem import MaxCoverage
 
+LISTEN_HOST_ENV_VAR = 'BENCHER_IOH_HOST'
 
 class IOHServiceServicer(DualStackGRCPService):
 
     def __init__(
             self,
-            port: int = 50059
+            port: int = 50059,
+            listen_hosts=None
     ):
-        super().__init__(port=port, n_cores=1)
+        super().__init__(port=port, n_cores=1, listen_hosts=listen_hosts)
 
     def evaluate_point(
             self,
@@ -98,10 +100,11 @@ def serve():
         help='The port number to start the server on. Default is 50059. '
              'Can also be set via the BENCHER_IOH_PORT environment variable.',
     )
+    add_listen_argument(parser, env_var=LISTEN_HOST_ENV_VAR)
     args = parser.parse_args()
 
     logging.basicConfig()
-    ioh_service = IOHServiceServicer(port=args.port)
+    ioh_service = IOHServiceServicer(port=args.port, listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR))
     ioh_service.serve()
 
 

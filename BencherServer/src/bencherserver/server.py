@@ -3,6 +3,7 @@ import traceback
 import grpc
 import os
 
+from bencherscaffold.dual_stack_service import grpc_target
 from bencherscaffold.protoclasses import second_level_services_pb2_grpc
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
 from bencherscaffold.protoclasses.bencher_pb2_grpc import BencherServicer
@@ -45,7 +46,7 @@ class BencherServer(BencherServicer):
         Returns:
             None
         """
-        target = f"{host}:{port}"
+        target = grpc_target(host, port)
         stub = second_level_services_pb2_grpc.SecondLevelBencherStub(
             grpc.insecure_channel(target)
         )
