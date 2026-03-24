@@ -8,7 +8,7 @@ resolution-markers = [
 
 [[package]]
 name = "bencherscaffold"
-version = "0.5.1"
+version = "0.5.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "grpcio", version = "1.70.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
@@ -16,9 +16,9 @@ dependencies = [
     { name = "protobuf", version = "4.25.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
     { name = "protobuf", version = "6.31.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d8/88/c0619230f061630ba274ecce1aa12f3e208ffdd6b0c288274e815c330cea/bencherscaffold-0.5.1.tar.gz", hash = "sha256:dc4fc2f750bfaa37ad15bd0458a95cf7ee63558c21f44fae0c7431504a304a95", size = 6527, upload-time = "2026-03-19T13:50:03.521Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/49/be/749cdc1cb197ca2b3d0ae1dd360c7d26b30c94a5c3dbef40b74128dbb9c1/bencherscaffold-0.5.2.tar.gz", hash = "sha256:a36292c9dce4b075b1cf4da2f33b0acdaeeec50de92e4ca2cc0d81d93b1e3cfd", size = 6590, upload-time = "2026-03-24T17:55:27.451Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/40/5c/127da8e64f237338439faea6322c359e272c16085308d7def0f7e38b77b7/bencherscaffold-0.5.1-py3-none-any.whl", hash = "sha256:54662a8f065f48a3214ccaa3297290701463c6c29b432041830007dd689cb695", size = 11562, upload-time = "2026-03-19T13:50:02.145Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/d6/292a0e566853291c263faf0ec888a58e425829a8da553252e57f56154e9f/bencherscaffold-0.5.2-py3-none-any.whl", hash = "sha256:f863ca3ceaf0d4823e56ccaefdac36cb1614e53f28d92c5724528997ca6de808", size = 11651, upload-time = "2026-03-24T17:55:26.226Z" },
 ]
 
 [[package]]
@@ -178,7 +178,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bencherscaffold", specifier = "~=0.5.1" },
+    { name = "bencherscaffold", specifier = "~=0.5.2" },
     { name = "ioh", specifier = ">=0.3.18,<0.4.0" },
 ]
 
