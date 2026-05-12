@@ -8,9 +8,9 @@ ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:/root/.local/bin:$PATH"
 ENV LANG=C.UTF-8 \
     MUJOCO_PY_MUJOCO_PATH=/opt/mujoco210 \
     LD_LIBRARY_PATH="/opt/mujoco210/bin:/bin/usr/local/nvidia/lib64:/usr/lib/nvidia:${LD_LIBRARY_PATH-}" \
-    LIBSVMDATA_HOME=/tmp \
+    LIBSVMDATA_HOME=/opt/bencher-cache/libsvm \
     MOPTA_DATA_DIR=/opt/bencher/NoDependencyBenchmark/data \
-    SVM_DATA_DIR=/tmp/svmbenchmarks \
+    SVM_DATA_DIR=/opt/bencher-cache/svm \
     SUMO_HOME=/usr/share/sumo
 
 # ... (Arg definitions and apt-get installs remain the same) ...
@@ -97,9 +97,9 @@ ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
 ENV LANG=C.UTF-8 \
     MUJOCO_PY_MUJOCO_PATH=/opt/mujoco210 \
     LD_LIBRARY_PATH="/opt/mujoco210/bin:/bin/usr/local/nvidia/lib64:/usr/lib/nvidia:${LD_LIBRARY_PATH-}" \
-    LIBSVMDATA_HOME=/tmp \
+    LIBSVMDATA_HOME=/opt/bencher-cache/libsvm \
     MOPTA_DATA_DIR=/opt/bencher/NoDependencyBenchmark/data \
-    SVM_DATA_DIR=/tmp/svmbenchmarks \
+    SVM_DATA_DIR=/opt/bencher-cache/svm \
     SUMO_HOME=/usr/share/sumo
 ENV UV_CACHE_DIR=/tmp/.uv-cache \
     UV_PYTHON_DOWNLOADS=never \
@@ -130,16 +130,18 @@ COPY --from=builder /opt/bencher /opt/bencher
 COPY --from=builder /entrypoint.py /entrypoint.py
 
 # Pre-fetch libsvm datasets into /tmp to avoid download at runtime using LassoBenchmarks env
-RUN cd /opt/bencher/LassoBenchmarks && \
-    LIBSVMDATA_HOME=/tmp uv run python - <<'PY'
+RUN mkdir -p "$LIBSVMDATA_HOME" && \
+    cd /opt/bencher/LassoBenchmarks && \
+    uv run python - <<'PY'
 from libsvmdata import fetch_libsvm
 for name in ["diabetes_scale", "breast-cancer_scale", "leukemia_test", "rcv1.binary", "dna"]:
     fetch_libsvm(name)
 PY
 
 # Pre-fetch SVM slice localization dataset into the configured directory
-RUN cd /opt/bencher/SVMBenchmarks && \
-    SVM_DATA_DIR=/tmp/svmbenchmarks uv run python - <<'PY'
+RUN mkdir -p "$SVM_DATA_DIR" && \ \
+    cd /opt/bencher/SVMBenchmarks && \
+    uv run python - <<'PY'
 from svmbenchmarks.main import download_slice_localization_data
 download_slice_localization_data()
 PY
@@ -158,7 +160,7 @@ PY
 
 # --- CHANGE 8: Final Permission sanity check ---
 # Just to be absolutely sure permissions didn't get messed up during COPY
-RUN chmod -R a+rX /opt/pyenv /opt/bencher
+RUN chmod -R a+rX /opt/pyenv /opt/bencher /opt/bencher-cache
 
 WORKDIR /opt/bencher
 EXPOSE 50051
