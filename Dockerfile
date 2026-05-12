@@ -139,7 +139,7 @@ for name in ["diabetes_scale", "breast-cancer_scale", "leukemia_test", "rcv1.bin
 PY
 
 # Pre-fetch SVM slice localization dataset into the configured directory
-RUN mkdir -p "$SVM_DATA_DIR" && \ \
+RUN mkdir -p "$SVM_DATA_DIR" && \
     cd /opt/bencher/SVMBenchmarks && \
     uv run python - <<'PY'
 from svmbenchmarks.main import download_slice_localization_data
