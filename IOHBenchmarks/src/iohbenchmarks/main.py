@@ -79,9 +79,8 @@ class IOHServiceServicer(DualStackGRCPService):
 
         benchmark = get_problem(pname, pid, dimension, problemclass)
         bounds = benchmark.bounds
-        MaxCoverage
         if bounds is not None:
-            x = (x - bounds.lb) / (bounds.ub - bounds.lb)
+            x = bounds.lb + x * (bounds.ub - bounds.lb)
             y = benchmark(x.astype(point_type))
         result = EvaluationResult(
             value=y,
