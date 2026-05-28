@@ -15,7 +15,11 @@ ENV LANG=C.UTF-8 \
 ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
 ARG RUNTIME_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
-    libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig"
+    libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig \
+    libgomp1 libgfortran5 unzip \
+    libxinerama1 libxcursor1 libxft2 libxrender1 libxi6 libxrandr2 libxfixes3 libxt6 \
+    libfontconfig1 libfreetype6 libxss1 libxcomposite1 libxdamage1 libxtst6 \
+    libxkbcommon0 libxext6 libglu1-mesa libxmu6"
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends $PPA_DEPENDENCIES && \
@@ -33,6 +37,17 @@ WORKDIR /opt
 RUN curl -LO https://github.com/google-deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz && \
     tar -xf mujoco210-linux-x86_64.tar.gz && \
     rm mujoco210-linux-x86_64.tar.gz
+
+# OpenRadioss (Linux x86_64) for the MECHBenchmarks service. This is the same
+# release MECHBench would otherwise download at runtime (see platform_det.py).
+# The zip ships a top-level OpenRadioss/ dir -> /opt/openradioss/OpenRadioss.
+RUN mkdir -p /opt/openradioss && cd /opt/openradioss && \
+    curl -LO https://github.com/OpenRadioss/OpenRadioss/releases/download/latest-20260319/OpenRadioss_linux64.zip && \
+    unzip -q OpenRadioss_linux64.zip && \
+    rm OpenRadioss_linux64.zip && \
+    chmod -R a+rX /opt/openradioss && \
+    test -d /opt/openradioss/OpenRadioss/exec || \
+    (echo "Unexpected OpenRadioss layout; set BENCHER_MECHBENCH_OPENRADIOSS_PATH accordingly:" && ls -R /opt/openradioss | head -40 && false)
 
 # --- CHANGE 2: Install uv to a global location ---
 # By default uv installs to ~/.local/bin. We force it to /usr/local/bin
@@ -90,12 +105,19 @@ ENV LANG=C.UTF-8 \
 ENV UV_CACHE_DIR=/tmp/.uv-cache \
     UV_PYTHON_DOWNLOADS=never \
     PYTHONDONTWRITEBYTECODE=1
+# MECHBenchmarks: point the service at the bundled OpenRadioss install so it
+# does not try to download the solver at runtime.
+ENV BENCHER_MECHBENCH_OPENRADIOSS_PATH=/opt/openradioss/OpenRadioss
 
 # ... (Runtime dependency install remains the same) ...
 ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
 ARG RUNTIME_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
-    libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig"
+    libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig \
+    libgomp1 libgfortran5 unzip \
+    libxinerama1 libxcursor1 libxft2 libxrender1 libxi6 libxrandr2 libxfixes3 libxt6 \
+    libfontconfig1 libfreetype6 libxss1 libxcomposite1 libxdamage1 libxtst6 \
+    libxkbcommon0 libxext6 libglu1-mesa libxmu6"
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends $PPA_DEPENDENCIES && \
@@ -105,6 +127,7 @@ RUN apt-get update -y && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/mujoco210 /opt/mujoco210
+COPY --from=builder /opt/openradioss /opt/openradioss
 
 # --- CHANGE 6: Copy uv from /usr/local/bin ---
 COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv

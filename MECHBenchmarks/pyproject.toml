@@ -1,0 +1,24 @@
+[project]
+name = "mechbenchmarks"
+version = "0.1.0"
+description = ""
+authors = [{ name = "Leonard Papenmeier", email = "leonard@papenmeier.io" }]
+requires-python = ">=3.11,<4.0"
+readme = "README.md"
+dependencies = [
+    "bencherscaffold~=0.4.0",
+    "mechbench",
+    "numpy>=2.0.1",
+]
+
+[project.scripts]
+start-benchmark-service = "mechbenchmarks.main:serve"
+
+[tool.uv.sources]
+# Packaging-fixed fork of https://github.com/BayesOptApp/MECHBench
+# (upstream installs as `sob` but imports itself as `src.sob`; the fork fixes that).
+mechbench = { git = "https://github.com/lpapenme/MECHBench.git" }
+
+[build-system]
+requires = ["uv_build>=0.9.6,<0.10.0"]
+build-backend = "uv_build"

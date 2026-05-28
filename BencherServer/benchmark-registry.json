@@ -1,4 +1,19 @@
 {
+  "mechbench-starbox": {
+    "port": 50061,
+    "dimensions": null,
+    "type": "purely_continuous"
+  },
+  "mechbench-bending": {
+    "port": 50061,
+    "dimensions": null,
+    "type": "purely_continuous"
+  },
+  "mechbench-crashtube": {
+    "port": 50061,
+    "dimensions": null,
+    "type": "purely_continuous"
+  },
   "lasso-dna": {
     "port": 50053,
     "dimensions": 180,
@@ -235,6 +250,11 @@
     "type": "purely_continuous"
   },
   "bbob-lunacekbirastrigin": {
+    "port": 50059,
+    "dimensions": null,
+    "type": "purely_continuous"
+  },
+  "bbob-*": {
     "port": 50059,
     "dimensions": null,
     "type": "purely_continuous"

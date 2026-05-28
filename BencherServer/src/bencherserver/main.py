@@ -23,6 +23,7 @@ _BENCHMARK_PORT_ENV_VARS: dict[int, str] = {
     50058: 'BENCHER_SVM_PORT',
     50059: 'BENCHER_IOH_PORT',
     50060: 'BENCHER_BO4MOB_PORT',
+    50061: 'BENCHER_MECHBENCH_PORT',
 }
 
 
@@ -61,7 +62,10 @@ def serve():
         benchmark_names_to_properties = json.load(f)
 
     # structure: {benchmark_name: {port: int, dimensions: int}}
-    targets_to_benchmarks: dict[tuple[str, int], list[str]] = defaultdict(list)
+    # A benchmark_name ending in '*' is treated as a prefix entry: requests whose name
+    # begins with the prefix (after stripping the trailing '*') are routed to that stub.
+    exact_targets: dict[tuple[str, int], list[str]] = defaultdict(list)
+    prefix_targets: dict[tuple[str, int], list[str]] = defaultdict(list)
 
     for benchmark_name, properties in benchmark_names_to_properties.items():
         port = properties['port']
@@ -69,11 +73,18 @@ def serve():
         if env_var:
             port = int(os.environ.get(env_var, port))
         host = properties.get('host', 'localhost')
-        targets_to_benchmarks[(host, port)].append(benchmark_name)
+        if benchmark_name.endswith('*'):
+            prefix_targets[(host, port)].append(benchmark_name[:-1])
+        else:
+            exact_targets[(host, port)].append(benchmark_name)
 
-    for (host, port), benchmarks in targets_to_benchmarks.items():
+    for (host, port), benchmarks in exact_targets.items():
         print(f"registering {benchmarks} on {host}:{port}")
         bencher_server.register_stub(benchmarks, host, port)
+    for (host, port), prefixes in prefix_targets.items():
+        for prefix in prefixes:
+            print(f"registering prefix '{prefix}*' on {host}:{port}")
+            bencher_server.register_prefix_stub(prefix, host, port)
 
     port = str(args.port)
     listen_addresses = args.listen_addresses or ['0.0.0.0', '[::]']
