@@ -1,4 +1,8 @@
 import logging
+import os
+from argparse import ArgumentParser
+
+import gym
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
 from bencherscaffold.dual_stack_service import DualStackGRCPService
@@ -82,7 +86,7 @@ class MujocoServiceServicer(DualStackGRCPService):
                 value=-float(func_factory(x)[0].squeeze()),
             )
         elif request.benchmark.name == 'lunarlander':
-            env = LunarLander()
+            env = gym.make("LunarLander-v2")
             total_reward = 0
             steps = 0
             s = env.reset()
