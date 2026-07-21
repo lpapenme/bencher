@@ -3,7 +3,7 @@ import threading
 import logging
 import numpy as np
 import os
-import tempfile
+import pathlib
 from argparse import ArgumentParser
 from functools import lru_cache
 
@@ -14,8 +14,9 @@ from maxsatbenchmarks.data_loading import download_maxsat60_data, download_maxsa
 from maxsatbenchmarks.wcnf import WCNF
 
 LISTEN_HOST_ENV_VAR = 'BENCHER_MAXSAT_HOST'
-directory_file_descriptor = tempfile.TemporaryDirectory()
-directory_name = directory_file_descriptor.name
+DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data" / "maxsat"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+directory_name = str(DATA_DIR)
 
 filename_map = {
     'maxsat60' : 'frb10-6-4.wcnf',
