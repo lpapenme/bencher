@@ -5,8 +5,9 @@ from argparse import ArgumentParser
 import LassoBench
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.dual_stack_service import DualStackGRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 
+LISTEN_HOST_ENV_VAR = 'BENCHER_LASSO_HOST'
 
 def eval_lasso(
         x: np.ndarray,
@@ -41,9 +42,10 @@ class LassoServiceServicer(DualStackGRCPService):
 
     def __init__(
             self,
-            port: int = 50053
+            port: int = 50053,
+            listen_hosts=None
     ):
-        super().__init__(port=port, n_cores=1)
+        super().__init__(port=port, n_cores=1, listen_hosts=listen_hosts)
 
     def evaluate_point(
             self,
@@ -71,10 +73,11 @@ def serve():
         help='The port number to start the server on. Default is 50053. '
              'Can also be set via the BENCHER_LASSO_PORT environment variable.',
     )
+    add_listen_argument(parser, env_var=LISTEN_HOST_ENV_VAR)
     args = parser.parse_args()
 
     logging.basicConfig()
-    lasso = LassoServiceServicer(port=args.port)
+    lasso = LassoServiceServicer(port=args.port, listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR))
     lasso.serve()
 
 

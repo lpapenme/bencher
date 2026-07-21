@@ -56,6 +56,36 @@ The BencherServer (the main entry point for clients) also honours these variable
 connecting to the backend benchmark services, so changing a single variable is enough to
 move a service to a different port.
 
+## Host Configuration
+
+Every service also accepts host or address overrides. For the benchmark services, use
+`--listen-host` on the CLI or the matching `BENCHER_*_HOST` environment variable. For
+`BencherServer`, use `--listen-address` on the CLI or `BENCHER_SERVER_HOST` in the
+environment. As with ports, CLI arguments take precedence over environment variables,
+which take precedence over the built-in defaults.
+
+Environment variable values may contain either a single value or a comma-separated list.
+Repeated CLI flags also work. Normal TCP hosts such as `127.0.0.1` or `[::]` are combined
+with the configured port, while values starting with `unix:` are treated as complete gRPC
+addresses and are used as-is.
+
+| Service              | Environment Variable      | Default Host / Address |
+|----------------------|---------------------------|------------------------|
+| BencherServer        | `BENCHER_SERVER_HOST`     | `0.0.0.0,[::]`         |
+| LassoBenchmarks      | `BENCHER_LASSO_HOST`      | `0.0.0.0,[::]`         |
+| NoDependencyBenchmark| `BENCHER_NODEP_HOST`      | `0.0.0.0,[::]`         |
+| MaxSATBenchmarks     | `BENCHER_MAXSAT_HOST`     | `0.0.0.0,[::]`         |
+| EboBenchmarks        | `BENCHER_EBO_HOST`        | `0.0.0.0,[::]`         |
+| MujocoBenchmarks     | `BENCHER_MUJOCO_HOST`     | `0.0.0.0,[::]`         |
+| SVMBenchmarks        | `BENCHER_SVM_HOST`        | `0.0.0.0,[::]`         |
+| IOHBenchmarks        | `BENCHER_IOH_HOST`        | `0.0.0.0,[::]`         |
+| BO4MobBenchmark      | `BENCHER_BO4MOB_HOST`     | `0.0.0.0,[::]`         |
+
+When the coordinating `BencherServer` connects to backend benchmark services, it also
+honours the benchmark `BENCHER_*_HOST` variables. That keeps the target address aligned
+with the benchmark service when you switch a benchmark from TCP to something like
+`unix:/tmp/lasso.sock`.
+
 ### Docker example
 
 ```shell
@@ -72,6 +102,13 @@ docker run \
   -e BENCHER_SERVER_PORT=60051 \
   -e BENCHER_LASSO_PORT=60053 \
   -p 60051:60051 \
+  --restart always -d bencher:latest
+```
+
+```shell
+# Switch the Lasso benchmark and BencherServer wiring to a Unix domain socket
+docker run \
+  -e BENCHER_LASSO_HOST=unix:/tmp/lasso.sock \
   --restart always -d bencher:latest
 ```
 

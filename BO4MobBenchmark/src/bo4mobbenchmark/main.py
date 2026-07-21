@@ -9,9 +9,10 @@ from importlib import resources
 
 import pandas as pd
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.dual_stack_service import DualStackGRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 from bo4mob import single_od_run
 
+LISTEN_HOST_ENV_VAR = 'BENCHER_BO4MOB_HOST'
 # our benchmarks will have names like 1ramp_221008_08-09_count where everything after 1ramp can vary
 # well match the names via regex
 valid_benchmark_expressions = [
@@ -27,9 +28,10 @@ class BO4MOBServiceServicer(DualStackGRCPService):
 
     def __init__(
             self,
-            port: int = 50060
+            port: int = 50060,
+            listen_hosts=None
     ):
-        super().__init__(port=port, n_cores=1)
+        super().__init__(port=port, n_cores=1, listen_hosts=listen_hosts)
 
     def evaluate_point(
             self,
@@ -96,10 +98,11 @@ def serve():
         help='The port number to start the server on. Default is 50060. '
              'Can also be set via the BENCHER_BO4MOB_PORT environment variable.',
     )
+    add_listen_argument(parser, env_var=LISTEN_HOST_ENV_VAR)
     args = parser.parse_args()
 
     logging.basicConfig()
-    bo4mob = BO4MOBServiceServicer(port=args.port)
+    bo4mob = BO4MOBServiceServicer(port=args.port, listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR))
     bo4mob.serve()
 
 

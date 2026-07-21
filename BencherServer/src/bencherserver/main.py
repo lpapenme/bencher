@@ -7,6 +7,7 @@ import os
 from argparse import ArgumentParser
 from pathlib import Path
 
+from bencherscaffold.dual_stack_service import add_listen_argument, grpc_target, resolve_listen_entries
 from bencherscaffold.protoclasses import bencher_pb2_grpc
 
 from bencherserver.server import BencherServer
@@ -25,6 +26,16 @@ _BENCHMARK_PORT_ENV_VARS: dict[int, str] = {
     50060: 'BENCHER_BO4MOB_PORT',
 }
 
+_BENCHMARK_HOST_ENV_VARS: dict[int, str] = {
+    50053: 'BENCHER_LASSO_HOST',
+    50054: 'BENCHER_NODEP_HOST',
+    50055: 'BENCHER_MAXSAT_HOST',
+    50056: 'BENCHER_EBO_HOST',
+    50057: 'BENCHER_MUJOCO_HOST',
+    50058: 'BENCHER_SVM_HOST',
+    50059: 'BENCHER_IOH_HOST',
+    50060: 'BENCHER_BO4MOB_HOST',
+}
 
 def serve():
     argparse = ArgumentParser()
@@ -45,12 +56,12 @@ def serve():
         help='The number of CPU cores to use. If None, it will use the maximum number of CPU cores available on the system. Default is cpu_count()',
         default=os.cpu_count()
     )
-    argparse.add_argument(
-        '--listen-address',
+    add_listen_argument(
+        argparse,
+        env_var='BENCHER_SERVER_HOST',
+        option='--listen-address',
         dest='listen_addresses',
-        action='append',
-        required=False,
-        help='Explicit address to bind on (e.g., 127.0.0.1, [::]). Defaults to binding both IPv4 and IPv6 loopback.',
+        value_name='Address',
     )
     args = argparse.parse_args()
 
@@ -69,21 +80,23 @@ def serve():
         if env_var:
             port = int(os.environ.get(env_var, port))
         host = properties.get('host', 'localhost')
+        host_env_var = _BENCHMARK_HOST_ENV_VARS.get(properties['port'])
+        if host_env_var:
+            host = resolve_listen_entries(None, env_var=host_env_var, default=(host,))[0]
         targets_to_benchmarks[(host, port)].append(benchmark_name)
 
     for (host, port), benchmarks in targets_to_benchmarks.items():
-        print(f"registering {benchmarks} on {host}:{port}")
+        print(f"registering {benchmarks} on {grpc_target(host, port)}")
         bencher_server.register_stub(benchmarks, host, port)
 
     port = str(args.port)
-    listen_addresses = args.listen_addresses or ['0.0.0.0', '[::]']
-    listen_addresses = [address.strip() for address in listen_addresses if address and address.strip()]
+    listen_addresses = resolve_listen_entries(args.listen_addresses, env_var='BENCHER_SERVER_HOST')
     n_cores = args.cores
     server = grpc.server(ThreadPoolExecutor(max_workers=n_cores))
     bencher_pb2_grpc.add_BencherServicer_to_server(bencher_server, server)
     bound = 0
     for address in listen_addresses:
-        bound += server.add_insecure_port(f"{address}:{port}")
+        bound += server.add_insecure_port(grpc_target(address, args.port))
     if bound == 0:
         raise RuntimeError(f"Could not bind BencherServer on port {port} for addresses {listen_addresses}")
     server.start()

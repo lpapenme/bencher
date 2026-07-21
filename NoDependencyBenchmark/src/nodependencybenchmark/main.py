@@ -8,8 +8,9 @@ from argparse import ArgumentParser
 from platform import machine
 
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.dual_stack_service import DualStackGRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 
+LISTEN_HOST_ENV_VAR = 'BENCHER_NODEP_HOST'
 directory_file_descriptor = tempfile.TemporaryDirectory()
 directory_name = directory_file_descriptor.name
 
@@ -134,9 +135,10 @@ class NoDependencyServiceServicer(DualStackGRCPService):
 
     def __init__(
             self,
-            port: int = 50054
+            port: int = 50054,
+            listen_hosts=None
     ):
-        super().__init__(port=port, n_cores=1)
+        super().__init__(port=port, n_cores=1, listen_hosts=listen_hosts)
 
         self.sysarch = 64 if sys.maxsize > 2 ** 32 else 32
         self.machine = machine().lower()
@@ -250,10 +252,11 @@ def serve():
         help='The port number to start the server on. Default is 50054. '
              'Can also be set via the BENCHER_NODEP_PORT environment variable.',
     )
+    add_listen_argument(parser, env_var=LISTEN_HOST_ENV_VAR)
     args = parser.parse_args()
 
     logging.basicConfig()
-    nodep = NoDependencyServiceServicer(port=args.port)
+    nodep = NoDependencyServiceServicer(port=args.port, listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR))
     nodep.serve()
 
 

@@ -9,12 +9,13 @@ from typing import Optional, Callable, Tuple
 import math
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
-from bencherscaffold.dual_stack_service import DualStackGRCPService
+from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 from numpy.random import RandomState
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
 from xgboost import XGBRegressor
 
+LISTEN_HOST_ENV_VAR = 'BENCHER_SVM_HOST'
 directory_file_descriptor = tempfile.TemporaryDirectory()
 directory_name = directory_file_descriptor.name
 lock = threading.Lock()
@@ -138,9 +139,10 @@ class SvmServiceServicer(DualStackGRCPService):
 
     def __init__(
             self,
-            port: int = 50058
+            port: int = 50058,
+            listen_hosts=None
     ):
-        super().__init__(port=port)
+        super().__init__(port=port, listen_hosts=listen_hosts)
         self.data_initialized = None
 
     def initialize_data(
@@ -221,10 +223,11 @@ def serve():
         help='The port number to start the server on. Default is 50058. '
              'Can also be set via the BENCHER_SVM_PORT environment variable.',
     )
+    add_listen_argument(parser, env_var=LISTEN_HOST_ENV_VAR)
     args = parser.parse_args()
 
     logging.basicConfig()
-    svm = SvmServiceServicer(port=args.port)
+    svm = SvmServiceServicer(port=args.port, listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR))
     svm.serve()
 
 
