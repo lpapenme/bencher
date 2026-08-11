@@ -174,6 +174,33 @@ This starts all the benchmarks in the container (as defined in the `startscript`
 apptainer instance start container.sif your-instance-name
 ```
 
+### Running multiple instances on the same host (HPC array jobs)
+
+By default, `apptainer instance start` does **not** give each instance its own network
+namespace — all instances on the same physical host share the host's network stack. Since
+every benchmark service binds a fixed port (see [Port Configuration](#port-configuration)),
+running more than one instance concurrently on the same node (e.g. multiple SLURM array
+tasks landing on the same node) means their gRPC servers all listen on the *same* port
+(e.g. `50051`, `50057`, ...) at once. A client connecting to `127.0.0.1:<port>` can then be
+routed by the kernel to a **different instance's** server than the one it started. Since
+gRPC calls have no deadline by default, a misrouted request just hangs forever instead of
+erroring — this can look like a mysterious multi-day stall in a specific benchmark with no
+corresponding error in any log.
+
+Fix: pass `--net --network=none` to `apptainer instance start` so each instance gets its own
+private network namespace (loopback-only, but fully isolated from every other instance on
+the host):
+
+```shell
+apptainer instance start --fakeroot --net --network=none container.sif your-instance-name
+```
+
+Verified: two concurrent instances of the same container, both started with
+`--net --network=none`, can each bind port `50051` independently with no error — the host's
+own network view shows nothing on that port from either instance, confirming true isolation.
+`--fakeroot` is required alongside `--net` on clusters where the user isn't in `/etc/subuid`
+(root-mapped namespace mode already covers the network namespace creation).
+
 ### Run your command that depends on the benchmarks
 
 This runs your command in the instance `your-instance-name` as defined in the `runscript` of the Apptainer file.

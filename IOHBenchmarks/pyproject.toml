@@ -2,7 +2,7 @@
 name = "iohbenchmarks"
 version = "0.1.0"
 description = ""
-authors = [{ name = "Leonard Papenmeier", email = "leonard.papenmeier@posteo.de" }]
+authors = [{ name = "Leonard Papenmeier", email = "leonard@papenmeier.io" }]
 requires-python = ">=3.10,<4.0"
 readme = "README.md"
 dependencies = [
