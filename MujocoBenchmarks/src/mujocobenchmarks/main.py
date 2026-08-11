@@ -6,7 +6,6 @@ import gym
 import numpy as np
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
-from gym.envs.box2d import LunarLander
 
 from mujocobenchmarks.functions import func_factories
 
@@ -90,19 +89,20 @@ class MujocoServiceServicer(DualStackGRCPService):
             )
         elif request.benchmark.name == 'lunarlander':
             env = gym.make("LunarLander-v2")
-            total_reward = 0
-            steps = 0
-            s = env.reset()
-            while True:
-                a = heuristic_controller(s, x.squeeze())
-                s, r, terminated, _ = env.step(a)
-                total_reward += r
+            try:
+                total_reward = 0
+                s = env.reset()
+                while True:
+                    a = heuristic_controller(s, x.squeeze())
+                    s, r, terminated, _ = env.step(a)
+                    total_reward += r
 
-                steps += 1
-                if terminated:
-                    break
+                    if terminated:
+                        break
+            finally:
+                env.close()
             result = EvaluationResult(
-                value=total_reward
+                value=-total_reward
             )
         else:
             raise ValueError("Invalid benchmark name")
