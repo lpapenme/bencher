@@ -68,8 +68,10 @@ class MujocoServiceServicer(DualStackGRCPService):
     def __init__(
             self,
             port: int = 50057,
-            listen_hosts=None
+            listen_hosts=None,
+            lunarlander_rollouts: int = 50,
     ):
+        self._lunarlander_rollouts = lunarlander_rollouts
         super().__init__(port=port, n_cores=1, listen_hosts=listen_hosts)
 
     def evaluate_point(
@@ -90,19 +92,22 @@ class MujocoServiceServicer(DualStackGRCPService):
         elif request.benchmark.name == 'lunarlander':
             env = gym.make("LunarLander-v2")
             try:
-                total_reward = 0
-                s = env.reset()
-                while True:
-                    a = heuristic_controller(s, x.squeeze())
-                    s, r, terminated, _ = env.step(a)
-                    total_reward += r
+                rewards = []
+                for i in range(self._lunarlander_rollouts):
+                    total_reward = 0.
+                    s = env.reset(seed=i)
+                    while True:
+                        a = heuristic_controller(s, x.squeeze())
+                        s, r, terminated, _ = env.step(a)
+                        total_reward += r
 
-                    if terminated:
-                        break
+                        if terminated:
+                            break
+                    rewards.append(total_reward)
             finally:
                 env.close()
             result = EvaluationResult(
-                value=-total_reward
+                value=-float(np.mean(rewards))
             )
         else:
             raise ValueError("Invalid benchmark name")
@@ -119,11 +124,22 @@ def serve():
         help='The port number to start the server on. Default is 50057. '
              'Can also be set via the BENCHER_MUJOCO_PORT environment variable.',
     )
+    parser.add_argument(
+        '--lunarlander-rollouts',
+        type=int,
+        default=int(os.environ.get('BENCHER_LUNARLANDER_ROLLOUTS', 50)),
+        help='Number of fixed terrain seeds averaged per Lunar Lander evaluation. '
+             'Can also be set via the BENCHER_LUNARLANDER_ROLLOUTS environment variable.',
+    )
     add_listen_argument(parser, env_var=LISTEN_HOST_ENV_VAR)
     args = parser.parse_args()
 
     logging.basicConfig()
-    mujoco = MujocoServiceServicer(port=args.port, listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR))
+    mujoco = MujocoServiceServicer(
+        port=args.port,
+        listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR),
+        lunarlander_rollouts=args.lunarlander_rollouts
+    )
     mujoco.serve()
 
 

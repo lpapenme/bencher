@@ -43,12 +43,12 @@ class ObjectFactory(Generic[T]):
 
 
 class MujucoPolicyFunc:
-    ANT_ENV: ClassVar[Tuple[str, float, float, int]] = ('Ant-v2', -1.0, 1.0, 1)
+    ANT_ENV: ClassVar[Tuple[str, float, float, int]] = ('Ant-v2', -1.0, 1.0, 50)
     SWIMMER_ENV: ClassVar[Tuple[str, float, float, int]] = ('Swimmer-v2', -1.0, 1.0, 5)
-    HALF_CHEETAH_ENV: ClassVar[Tuple[str, float, float, int]] = ('HalfCheetah-v2', -1.0, 1.0, 5)
+    HALF_CHEETAH_ENV: ClassVar[Tuple[str, float, float, int]] = ('HalfCheetah-v2', -1.0, 1.0, 25)
     HOPPER_ENV: ClassVar[Tuple[str, float, float, int]] = ('Hopper-v2', -1.4, 1.4, 5)
-    WALKER_2D_ENV: ClassVar[Tuple[str, float, float, int]] = ('Walker2d-v2', -1.8, 0.9, 5)
-    HUMANOID_ENV: ClassVar[Tuple[str, float, float, int]] = ('Humanoid-v2', -1.0, 1.0, 5)
+    WALKER_2D_ENV: ClassVar[Tuple[str, float, float, int]] = ('Walker2d-v2', -1.8, 0.9, 10)
+    HUMANOID_ENV: ClassVar[Tuple[str, float, float, int]] = ('Humanoid-v2', -1.0, 1.0, 10)
 
     ENV_CP = {
         ANT_ENV[0]: 10.0,
@@ -96,8 +96,8 @@ class MujucoPolicyFunc:
             rewards = []
             observations = []
             actions = []
-            for _ in range(self._num_rollouts):
-                obs = self._env.reset()
+            for j in range(self._num_rollouts):
+                obs = self._env.reset(seed=j)
                 done = False
                 total_reward = 0.
                 steps = 0
