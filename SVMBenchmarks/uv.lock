@@ -4,15 +4,15 @@ requires-python = "==3.11.*"
 
 [[package]]
 name = "bencherscaffold"
-version = "0.5.2"
+version = "0.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "grpcio" },
     { name = "protobuf" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/be/749cdc1cb197ca2b3d0ae1dd360c7d26b30c94a5c3dbef40b74128dbb9c1/bencherscaffold-0.5.2.tar.gz", hash = "sha256:a36292c9dce4b075b1cf4da2f33b0acdaeeec50de92e4ca2cc0d81d93b1e3cfd", size = 6590, upload-time = "2026-03-24T17:55:27.451Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/c7/aa9ae1237f8c60e98f2611da08bb64d77326ecc91262ecd1beb99bed3e75/bencherscaffold-0.6.3.tar.gz", hash = "sha256:2f23165fc3bd41d224efe2da86c9a554f88b79b0e57bc0bfb920a57f4fef4289", size = 7083, upload-time = "2026-09-22T12:35:20.195Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6d/d6/292a0e566853291c263faf0ec888a58e425829a8da553252e57f56154e9f/bencherscaffold-0.5.2-py3-none-any.whl", hash = "sha256:f863ca3ceaf0d4823e56ccaefdac36cb1614e53f28d92c5724528997ca6de808", size = 11651, upload-time = "2026-03-24T17:55:26.226Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/46/aa279cc1530162e0aabdd427d1bd3ee9287da87db41e5f860ac2f7e23b20/bencherscaffold-0.6.3-py3-none-any.whl", hash = "sha256:1be62464c1025f6a750e542e9e2fd021f0d93eb2448adcf2947002c576f67c7d", size = 12163, upload-time = "2026-09-22T12:35:18.801Z" },
 ]
 
 [[package]]
@@ -187,7 +187,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bencherscaffold", specifier = "~=0.5.2" },
+    { name = "bencherscaffold", specifier = "~=0.6.3" },
     { name = "numpy", specifier = ">=1.26.4,<2" },
     { name = "requests", specifier = ">=2.31.0,<3" },
     { name = "scikit-learn", specifier = ">=1.4.0,<2" },

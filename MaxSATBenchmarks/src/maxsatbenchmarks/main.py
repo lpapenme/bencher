@@ -7,7 +7,7 @@ import pathlib
 from argparse import ArgumentParser
 from functools import lru_cache
 
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
+from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 
 from maxsatbenchmarks.data_loading import download_maxsat60_data, download_maxsat125_data
@@ -161,7 +161,12 @@ class MaxSATServiceServicer(DualStackGRCPService):
         negative_weights = negative_weights_map[request.benchmark.name]
 
         result = EvaluationResult(
-            value=eval(x, weights, total_weight, clauseidxs, clauses, negative_weights)
+            objectives=[
+                ObjectiveValue(
+                    name="f0",
+                    value=eval(x, weights, total_weight, clauseidxs, clauses, negative_weights),
+                )
+            ],
         )
         return result
 

@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 from importlib import resources
 
 import pandas as pd
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
+from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 from bo4mob import single_od_run
 
@@ -84,7 +84,7 @@ class BO4MOBServiceServicer(DualStackGRCPService):
                     else:
                         os.remove(item_path)
         result = EvaluationResult(
-            value=nrmse_value
+            objectives=[ObjectiveValue(name="f0", value=nrmse_value)],
         )
         return result
 

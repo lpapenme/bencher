@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 
 import gym
 import numpy as np
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
+from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 
 from mujocobenchmarks.functions import func_factories
@@ -85,7 +85,7 @@ class MujocoServiceServicer(DualStackGRCPService):
             x = lb + (ub - lb) * x
             func_factory = func_factory_map[request.benchmark.name](None)
             result = EvaluationResult(
-                value=-float(func_factory(x)[0].squeeze()),
+                objectives=[ObjectiveValue(name="f0", value=-float(func_factory(x)[0].squeeze()))],
             )
         elif request.benchmark.name == 'lunarlander':
             env = gym.make("LunarLander-v2")
@@ -102,7 +102,7 @@ class MujocoServiceServicer(DualStackGRCPService):
             finally:
                 env.close()
             result = EvaluationResult(
-                value=-total_reward
+                objectives=[ObjectiveValue(name="f0", value=-total_reward)],
             )
         else:
             raise ValueError("Invalid benchmark name")

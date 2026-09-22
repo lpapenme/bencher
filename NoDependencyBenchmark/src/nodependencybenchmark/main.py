@@ -7,7 +7,7 @@ import tempfile
 from argparse import ArgumentParser
 from platform import machine
 
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
+from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 
 LISTEN_HOST_ENV_VAR = 'BENCHER_NODEP_HOST'
@@ -206,7 +206,7 @@ class NoDependencyServiceServicer(DualStackGRCPService):
                 raise ValueError("Invalid benchmark name")
 
         result = EvaluationResult(
-            value=fun(x)
+            objectives=[ObjectiveValue(name="f0", value=fun(x))],
         )
         return result
 

@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 
 import LassoBench
 import numpy as np
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
+from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 
 LISTEN_HOST_ENV_VAR = 'BENCHER_LASSO_HOST'
@@ -59,7 +59,7 @@ class LassoServiceServicer(DualStackGRCPService):
         x = 2 * x - 1
         benchmark = benchmark_map[request.benchmark.name](None)
         result = EvaluationResult(
-            value=eval_lasso(x, benchmark),
+            objectives=[ObjectiveValue(name="f0", value=eval_lasso(x, benchmark))],
         )
         return result
 

@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 
 import ioh.iohcpp
 import numpy as np
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
+from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 from ioh import get_problem, ProblemClass
 from ioh.iohcpp.problem import MaxCoverage
@@ -85,7 +85,7 @@ class IOHServiceServicer(DualStackGRCPService):
             x = bounds.lb + x * (bounds.ub - bounds.lb)
             y = benchmark(x.astype(point_type))
         result = EvaluationResult(
-            value=y,
+            objectives=[ObjectiveValue(name="f0", value=y)],
         )
         return result
 

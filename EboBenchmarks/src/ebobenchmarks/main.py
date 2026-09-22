@@ -3,7 +3,7 @@ import os
 from argparse import ArgumentParser
 
 import numpy as np
-from bencherscaffold.protoclasses.bencher_pb2 import EvaluationResult, BenchmarkRequest
+from bencherscaffold.protoclasses.bencher_pb2 import EvaluationResult, ObjectiveValue, BenchmarkRequest
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 from ebo.test_functions.push_function import PushReward
 from ebo.test_functions.rover_function import create_large_domain
@@ -63,7 +63,7 @@ class EboServiceServicer(DualStackGRCPService):
             assert x.shape[0] == 60, "Invalid input shape"
             rewards = -self._domain(x)
         result = EvaluationResult(
-            value=rewards
+            objectives=[ObjectiveValue(name="f0", value=rewards)],
         )
         return result
 

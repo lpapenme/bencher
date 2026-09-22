@@ -8,7 +8,7 @@ from typing import Optional, Callable, Tuple
 
 import math
 import numpy as np
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult
+from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 from numpy.random import RandomState
 from sklearn.preprocessing import MinMaxScaler
@@ -200,7 +200,7 @@ class SvmServiceServicer(DualStackGRCPService):
             inds_selected = np.where(x[np.arange(len(x) - 3)] == 1)[0]
             if len(inds_selected) == 0:
                 return EvaluationResult(
-                    value=1.0
+                    objectives=[ObjectiveValue(name="f0", value=1.0)],
                 )
             else:
                 _x_fit = self._X_train[:, inds_selected]
@@ -215,7 +215,7 @@ class SvmServiceServicer(DualStackGRCPService):
         pred = svr.predict(_x_pred)
         error = np.sqrt(np.mean(np.square(pred - self._y_test)))
         result = EvaluationResult(
-            value=float(error)
+            objectives=[ObjectiveValue(name="f0", value=float(error))],
         )
         return result
 
