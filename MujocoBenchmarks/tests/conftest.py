@@ -1,10 +1,8 @@
-"""Fixtures for MujocoBenchmarks' tests, including the goldens plumbing.
+"""Fixtures for MujocoBenchmarks' tests.
 
-Every benchmark here is a stochastic rollout, so goldens are only meaningful
-when a seed is supplied -- which is what `random_seed` on BenchmarkRequest is
-for. The seed is therefore part of the recorded key, not an afterthought.
+Every benchmark here is a stochastic rollout. See test_rollouts.py for why this
+is the one package with no value goldens.
 """
-import json
 import pathlib
 
 import numpy as np
@@ -12,7 +10,6 @@ import pytest
 
 from mujocobenchmarks.main import BENCHMARKS, MujocoServiceServicer
 
-GOLDENS_PATH = pathlib.Path(__file__).resolve().parent / "goldens.json"
 NAMES = sorted(BENCHMARKS)
 
 # Fixed across every golden so a recorded value is reproducible by inspection.
@@ -30,8 +27,6 @@ def point_for(name):
 
 
 def pytest_addoption(parser):
-    parser.addoption("--update-goldens", action="store_true",
-                     help="rewrite goldens.json from this run")
     parser.addoption("--include-slow", action="store_true",
                      help="also drive mujoco-ant and mujoco-humanoid")
 
@@ -41,23 +36,6 @@ def servicer():
     return MujocoServiceServicer()
 
 
-@pytest.fixture(scope="session")
-def goldens():
-    return json.loads(GOLDENS_PATH.read_text()) if GOLDENS_PATH.is_file() else {}
-
-
-@pytest.fixture(scope="session")
-def recorder(request):
-    updating = request.config.getoption("--update-goldens")
-    recorded = {}
-    yield (recorded if updating else None)
-    if updating and recorded:
-        merged = {}
-        if GOLDENS_PATH.is_file():
-            merged.update(json.loads(GOLDENS_PATH.read_text()))
-        merged.update(recorded)
-        GOLDENS_PATH.write_text(json.dumps(merged, indent=2, sort_keys=True) + "\n")
-        print(f"\nwrote {len(recorded)} goldens to {GOLDENS_PATH}")
 
 
 def pytest_generate_tests(metafunc):
