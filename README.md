@@ -21,7 +21,7 @@ The Docker container can be pulled from the [Docker Hub](https://hub.docker.com/
 It contains all benchmarks and dependencies and exposes the benchmark server via port 50051.
 All service ports are configurable via environment variables (see [Port Configuration](#port-configuration)).
 
-We give an exemplary usage of the Docker container in the [bencherclient](https://github.com/LeoIV/bencherclient)
+We give an exemplary usage of the Docker container in the [bencherclient](https://github.com/lpapenme/bencherclient)
 repository.
 
 ```shell
@@ -218,13 +218,13 @@ apptainer run instance://your-instance-name
 
 ### Evaluating a benchmark
 
-We show how to run all benchmarks in the [`bencherclient`](https://github.com/LeoIV/bencherclient) repository.
+We show how to run all benchmarks in the [`bencherclient`](https://github.com/lpapenme/bencherclient) repository.
 You don't need to use this repository, it is mainly used to test the benchmarks.
 The general setup to evaluate a benchmark is as follows.
-First, install the [`bencherscaffold`](https://github.com/LeoIV/BencherScaffold) package:
+First, install the [`bencherscaffold`](https://github.com/lpapenme/BencherScaffold) package:
 
 ```shell
-pip install git+https://github.com/LeoIV/BencherScaffold
+pip install git+https://github.com/lpapenme/BencherScaffold
 ```
 
 Then, you can use the following code to evaluate a benchmark:
@@ -450,11 +450,11 @@ One main problem during the compilation occurs if you use a x86_64 Python on an 
 `David Eriksson, Michael Pearce, Jacob Gardner, Ryan D Turner and Matthias Poloczek, "Scalable Global Optimization via Local Bayesian Optimization." NeurIPS 2019`)
 [^4]: [`SAASBO`](https://github.com/martinjankowiak/saasbo)
 `David Eriksson and Martin Jankowiak, "High-dimensional Bayesian optimization with sparse axis-aligned subspaces", UAI 2021`
-[^5]: [`BAxUS`](https://github.com/LeoIV/BAxUS)
+[^5]: [`BAxUS`](https://github.com/lpapenme/BAxUS)
 `Leonard Papenmeier, Luigi Nardi, and Matthias Poloczek, "Increasing the Scope as You Learn: Adaptive Bayesian Optimization in Nested Subspaces", NeurIPS 2022`
 [^6]: [`BODi`](https://github.com/aryandeshwal/BODi)
 `Aryan Deshwal, Sebastian Ament, Maximilian Balandat, Eytan Bakshy, Janardhan Rao Doppa, and David Eriksson, "Bayesian Optimization over High-Dimensional Combinatorial Spaces via Dictionary-based Embeddings", AISTATS 2023`
-[^7]: [`Bounce`](https://github.com/LeoIV/bounce)
+[^7]: [`Bounce`](https://github.com/lpapenme/bounce)
 `Leonard Papenmeier, Luigi Nardi and Matthias Poloczek, "Bounce: Reliable High-Dimensional Bayesian Optimization for Combinatorial and Mixed Spaces", NeurIPS 2023`
 [^8]: The SVM benchmark is not included in the repository and was obtained by corresponding with the authors of the
 paper.
