@@ -25,13 +25,16 @@ def test_unknown_benchmark_is_rejected(servicer):
 
 
 @pytest.mark.parametrize("name", CHEAP)
-def test_value_matches_its_golden(servicer, goldens, recorder, name):
+def test_value_matches_its_golden(servicer, golden_for, recorder, name):
     value = servicer.evaluate(name, point_for(name))
     if recorder is not None:
         recorder[name] = value
         return
-    assert name in goldens, f"no golden for {name}; run with --update-goldens"
-    assert value == pytest.approx(goldens[name], rel=1e-9)
+    expected = golden_for(name)
+    assert expected is not None, (
+        f"no golden recorded for {name} on this platform; "
+        f"run with --update-goldens")
+    assert value == pytest.approx(expected, rel=1e-9)
 
 
 @pytest.mark.parametrize("name", CHEAP)

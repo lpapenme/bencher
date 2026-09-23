@@ -12,7 +12,6 @@ and regenerate the recorded values with:
 They live here rather than in the bencherclient repo so that a change to a
 service and the test that covers it land in the same commit.
 """
-import json
 import sys
 from pathlib import Path
 
@@ -20,9 +19,13 @@ import pytest
 from bencherscaffold.client import BencherClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import goldens as goldens_store  # noqa: E402
 from benchmarks import selected  # noqa: E402  (needs the path above)
 
 GOLDENS_PATH = Path(__file__).resolve().parent / "goldens.json"
+# The e2e sweep drives the deterministic benchmarks only, and those travel,
+# so one shared section serves every platform. See tests/goldens.py.
+GOLDENS_PLATFORM_SPECIFIC = False
 
 
 def pytest_addoption(parser):
@@ -53,9 +56,15 @@ def client(target) -> BencherClient:
 
 @pytest.fixture(scope="session")
 def goldens() -> dict:
-    if GOLDENS_PATH.is_file():
-        return json.loads(GOLDENS_PATH.read_text())
-    return {}
+    return goldens_store.load(GOLDENS_PATH)
+
+
+@pytest.fixture(scope="session")
+def golden_for(goldens):
+    """The recorded value for a benchmark, or None if none exists."""
+    def _lookup(name):
+        return goldens_store.lookup(goldens, name, GOLDENS_PLATFORM_SPECIFIC)
+    return _lookup
 
 
 @pytest.fixture(scope="session")
@@ -63,8 +72,7 @@ def recorder(request):
     """Collects values during an --update-goldens run and writes them out once.
 
     Writing from a session finalizer rather than per test keeps a partial run
-    from truncating the file: goldens.json is only replaced if the sweep got
-    far enough to produce at least one value.
+    from losing values, and the store merges rather than overwrites.
     """
     updating = request.config.getoption("--update-goldens")
     recorded: dict[str, float] = {}
@@ -72,12 +80,8 @@ def recorder(request):
     yield (recorded if updating else None)
 
     if updating and recorded:
-        merged = {}
-        if GOLDENS_PATH.is_file():
-            merged.update(json.loads(GOLDENS_PATH.read_text()))
-        merged.update(recorded)
-        GOLDENS_PATH.write_text(json.dumps(merged, indent=2, sort_keys=True) + "\n")
-        print(f"\nwrote {len(recorded)} goldens to {GOLDENS_PATH}")
+        section = goldens_store.record(GOLDENS_PATH, recorded, GOLDENS_PLATFORM_SPECIFIC)
+        print(f"\nwrote {len(recorded)} goldens to {GOLDENS_PATH} [{section}]")
 
 
 def pytest_generate_tests(metafunc):

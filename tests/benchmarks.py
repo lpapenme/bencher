@@ -5,8 +5,8 @@ the registry already carries every benchmark's name, dimensionality and type.
 This module adds only what testing needs on top -- the fill value to send, which
 benchmarks are stochastic, and which are too expensive to run routinely.
 
-Both the e2e suite and capture_goldens.py read this, so the point a golden was
-captured at cannot drift from the point the test replays.
+The e2e suite reads this, so the point a golden was captured at cannot drift
+from the point the test replays.
 """
 import json
 from pathlib import Path

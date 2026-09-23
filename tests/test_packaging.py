@@ -165,3 +165,65 @@ def test_every_package_has_tests():
     """All nine run on PRs; a package without tests is an untested CI leg."""
     missing = [rel(p) for p in PACKAGES if not (p / "tests").is_dir()]
     assert not missing, f"packages with no tests/: {missing}"
+
+
+GOLDENS_NAME = "goldens.json"
+
+
+def _goldens_files():
+    return sorted(pkg / "tests" / GOLDENS_NAME for pkg in PACKAGES
+                  if (pkg / "tests" / GOLDENS_NAME).is_file())
+
+
+@pytest.mark.parametrize("path", _goldens_files(), ids=lambda p: p.parent.parent.name)
+def test_goldens_file_has_a_valid_shape(path):
+    """Guards the sectioned format the shared store reads.
+
+    The golden tests *skip* when a value is absent, which is what lets a
+    platform without a recording fall back to relative assertions -- but it also
+    means a truncated or corrupted file would go unnoticed. This is the check
+    that would not.
+    """
+    import json
+    import sys
+    sys.path.insert(0, str(REPO_ROOT / "tests"))
+    import goldens as goldens_store
+
+    data = json.loads(path.read_text())
+    assert isinstance(data, dict) and data, f"{rel(path)} is empty or not an object"
+
+    bad_sections = sorted(s for s in data if not goldens_store.is_valid_section(s))
+    assert not bad_sections, (
+        f"{rel(path)} has sections that are neither {goldens_store.SHARED!r} nor a "
+        f"system-machine key: {bad_sections}")
+
+    for section, values in data.items():
+        assert isinstance(values, dict) and values, (
+            f"{rel(path)} section {section!r} is empty")
+        wrong = sorted(k for k, v in values.items() if not isinstance(v, (int, float)))
+        assert not wrong, f"{rel(path)} section {section!r} has non-numeric values: {wrong}"
+
+
+@pytest.mark.parametrize("path", _goldens_files(), ids=lambda p: p.parent.parent.name)
+def test_only_platform_specific_packages_carry_platform_sections(path):
+    """A shared package recording under a platform key would mean its goldens
+    stop applying everywhere else -- silent coverage loss on other machines."""
+    import json
+    import sys
+    sys.path.insert(0, str(REPO_ROOT / "tests"))
+    import goldens as goldens_store
+
+    conftest = (path.parent / "conftest.py").read_text()
+    declares_specific = "GOLDENS_PLATFORM_SPECIFIC = True" in conftest
+    sections = set(json.loads(path.read_text()))
+
+    if declares_specific:
+        assert goldens_store.SHARED not in sections, (
+            f"{rel(path)} is platform-specific but has a shared section; those "
+            f"values would be compared against on every architecture")
+    else:
+        platform_sections = sorted(sections - {goldens_store.SHARED})
+        assert not platform_sections, (
+            f"{rel(path)} is not declared platform-specific but has {platform_sections}; "
+            f"set GOLDENS_PLATFORM_SPECIFIC = True or record under "
+            f"{goldens_store.SHARED!r}")

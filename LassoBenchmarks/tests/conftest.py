@@ -1,5 +1,4 @@
 """Fixtures for LassoBenchmarks' tests."""
-import json
 import pathlib
 import sys
 
@@ -10,7 +9,12 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "tests"))
 
 from lassobenchmarks.main import BENCHMARKS, LassoServiceServicer
 
+import goldens as goldens_store  # noqa: E402
+
 GOLDENS_PATH = pathlib.Path(__file__).resolve().parent / "goldens.json"
+# These benchmarks are arithmetic, not chaotic: one recording serves every
+# platform. See tests/goldens.py.
+GOLDENS_PLATFORM_SPECIFIC = False
 
 # Synthetic problems build in-process; the "real" ones fetch a libsvm dataset on
 # first use. The big three are excluded entirely -- lasso-rcv1 is 47236
@@ -37,18 +41,27 @@ def servicer():
 
 @pytest.fixture(scope="session")
 def goldens():
-    return json.loads(GOLDENS_PATH.read_text()) if GOLDENS_PATH.is_file() else {}
+    return goldens_store.load(GOLDENS_PATH)
+
+
+@pytest.fixture(scope="session")
+def golden_for(goldens):
+    """Looks a golden up for this platform; None when none is recorded."""
+    def _lookup(name):
+        return goldens_store.lookup(goldens, name, GOLDENS_PLATFORM_SPECIFIC)
+    return _lookup
 
 
 @pytest.fixture(scope="session")
 def recorder(request):
+    """Collects values during --update-goldens and writes them out once.
+
+    Writing from a session finalizer rather than per test keeps a partial run
+    from losing values, and the store merges rather than overwrites.
+    """
     updating = request.config.getoption("--update-goldens")
     recorded = {}
     yield (recorded if updating else None)
     if updating and recorded:
-        merged = {}
-        if GOLDENS_PATH.is_file():
-            merged.update(json.loads(GOLDENS_PATH.read_text()))
-        merged.update(recorded)
-        GOLDENS_PATH.write_text(json.dumps(merged, indent=2, sort_keys=True) + "\n")
-        print(f"\nwrote {len(recorded)} goldens to {GOLDENS_PATH}")
+        section = goldens_store.record(GOLDENS_PATH, recorded, GOLDENS_PLATFORM_SPECIFIC)
+        print(f"\nwrote {len(recorded)} goldens to {GOLDENS_PATH} [{section}]")

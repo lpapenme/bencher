@@ -44,18 +44,18 @@ def test_benchmark_answers_with_a_single_objective(client, benchmark, recorder, 
 
 
 @pytest.mark.e2e
-def test_deterministic_benchmark_matches_its_golden(client, benchmark, goldens, recorder):
+def test_deterministic_benchmark_matches_its_golden(client, benchmark, golden_for, recorder):
     """Catches silent numerical drift -- a normalisation or sign regression."""
     name = benchmark["name"]
     if not benchmark["deterministic"]:
         pytest.skip(f"{name} is stochastic; no golden until random_seed is wired through")
     if recorder is not None:
         pytest.skip("recording goldens")
-    if name not in goldens:
+    expected = golden_for(name)
+    if expected is None:
         pytest.skip(f"no golden recorded for {name} yet (run with --update-goldens)")
 
     actual = client.evaluate_point(name, _point(benchmark)).objectives[0].value
-    expected = goldens[name]
     assert math.isclose(actual, expected, rel_tol=1e-9), (
         f"{name} returned {actual!r}, golden is {expected!r}. If this change is "
         f"intended, re-run with --update-goldens.")

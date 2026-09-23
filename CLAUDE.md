@@ -75,7 +75,18 @@ Apptainer / Singularity is documented in `README.md`; the same image is the base
 - **Native build deps.** macOS local builds need Homebrew `swig`, `gfortran`, `openblas`, `pkg-config`, `glfw`, `libomp`, and `PKG_CONFIG_PATH` exported to point at the OpenBLAS pkgconfig directory. A `x86_64` Python on Apple Silicon will fail builds — use an arm64 Python.
 - **Tests are tiered; run Tier 0 first.** `uv run pytest tests -q` at the repo root takes ~0.3s and needs no benchmark dependencies — it parses source and config against the installed `bencherscaffold`. It catches scaffold API drift, lock/pin divergence, registry drift, and syntax newer than a package's pinned interpreter. Per-package suites are `cd <Package> && uv run --locked --group dev pytest tests -q`; `tests/e2e/` needs a running container. See `AGENTS.md` for the full tiering.
 - **Services expose a pure `evaluate(name, x, seed=None)`** alongside `evaluate_point`, plus a declarative `BENCHMARKS` mapping (IOH uses `PROBLEM_FAMILIES`, BO4Mob `NETWORKS`, since their names are generated). Dimensions and types declared there are cross-checked against `benchmark-registry.json` by Tier 0 — keep the two in step.
-- **Goldens pin deterministic values.** Per-package `tests/goldens.json`, regenerated with `pytest tests --update-goldens`. Stochastic benchmarks (pestcontrol, MuJoCo/gym rollouts, rover, robotpushing) are pinned at a fixed seed instead; `random_seed` on `BenchmarkRequest` needs scaffold >= 0.6.4.
+- **Goldens are sectioned by platform.** Per-package `tests/goldens.json`, shape
+  `{"any": {...}, "linux-x86_64": {...}}`, read through `tests/goldens.py`.
+  Arithmetic benchmarks record under `any` -- one value serves every machine.
+  MuJoCo sets `GOLDENS_PLATFORM_SPECIFIC = True` because a physics rollout
+  amplifies floating-point differences: the same seed gives `+4.31` on
+  macOS/arm64 and `-1.71` on linux/amd64 for `mujoco-walker`. Where the running
+  platform has no section the golden test **skips** and the relative assertions
+  (same seed twice is equal, different seeds differ) carry the load.
+  Regenerate with `pytest tests --update-goldens`; it merges, never truncates.
+  Record for another architecture with the `record-goldens` workflow_dispatch
+  input, which captures on a real runner and uploads an artifact -- never under
+  emulation, where results may differ from real hardware.
 - **CI runs three workflows.** `pr-checks.yml` on every PR: Tier 0, plus a per-package matrix derived from each package's `[tool.bencher.ci] tier`, plus an informational container leg. `docker_build.yml` builds the image and runs `tests/e2e` nightly, on `main`, on tags, and on demand. `update_scaffold_version.yml` bumps `bencherscaffold` across all ten projects, gates on Tier 0, and opens a PR — it no longer pushes to `main`.
 - **gRPC types come from `bencherscaffold`**, not this repo. Don't try to regenerate protobufs here. Family services implement `SecondLevelBencher`; only `BencherServer` implements `Bencher`, which is why `BencherClient` can only talk to the front door.
 

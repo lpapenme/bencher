@@ -11,20 +11,22 @@ macOS/arm64 and the linux/amd64 container at the same seed:
     mujoco-swimmer       -5.9325575192963615 -> -5.805574154153944   (2e-2)
     mujoco-walker         4.309704043416025  -> -1.7118133581203339  (sign flip)
 
-No tolerance is both meaningful and passing across that. The other packages'
-goldens do reproduce across architectures -- IOH's 56, Lasso's 6 and MaxSAT's 2
-all pass on both -- because they are arithmetic, not chaotic dynamics.
+No tolerance is both meaningful and passing across that, so goldens here are
+stored *per platform* (see tests/goldens.py) rather than shared. The other
+packages' goldens do travel -- IOH's 56, Lasso's 6 and MaxSAT's 2 pass on both --
+because they are arithmetic, not chaotic dynamics.
 
-So what is pinned here is the deterministic part: that a seed makes a rollout
-reproducible *on one machine*, and that the [0,1] -> native-bounds rescaling is
-exactly right. Both are architecture-independent, and between them they catch
-what a golden would have: the seed failing to reach the rollout, and the domain
+On a platform with no recorded section the golden test skips and the relative
+assertions below carry the load: a seed makes a rollout reproducible *on one
+machine*, and the [0,1] -> native-bounds rescaling is exact. Both hold
+everywhere, because neither compares against a stored constant. Between them they
+catch what a golden would: the seed failing to reach the rollout, and the domain
 mapping being wrong.
 """
 import numpy as np
 import pytest
 
-from conftest import GOLDEN_SEED, point_for
+from conftest import GOLDEN_SEED, goldens_store, point_for
 from mujocobenchmarks.main import BENCHMARKS
 
 
@@ -58,6 +60,29 @@ def test_without_a_seed_the_rollout_still_varies(servicer, name):
     """Seeding is optional; omitting it must not silently fix the seed."""
     x = point_for(name)
     assert servicer.evaluate(name, x) != servicer.evaluate(name, x)
+
+
+def test_seeded_value_matches_this_platforms_golden(servicer, golden_for, recorder, name):
+    """Pins the actual trajectory -- the one thing the relative tests cannot.
+
+    Skips where no golden has been recorded for this platform, which is the
+    designed fallback rather than a gap: the assertions above still run, and
+    recording a value from the wrong architecture would be worse than none.
+    """
+    value = servicer.evaluate(name, point_for(name), seed=GOLDEN_SEED)
+    if recorder is not None:
+        recorder[name] = value
+        return
+
+    expected = golden_for(name)
+    if expected is None:
+        pytest.skip(
+            f"no golden for {name} on {goldens_store.PLATFORM_KEY}; "
+            f"record one with --update-goldens, or rely on the relative "
+            f"determinism tests")
+    assert value == pytest.approx(expected, rel=1e-9), (
+        f"{name} at seed {GOLDEN_SEED} returned {value!r}, "
+        f"golden for {goldens_store.PLATFORM_KEY} is {expected!r}")
 
 
 def test_the_value_is_finite(servicer, name):

@@ -1,8 +1,10 @@
 {
-  "lasso-breastcancer": 0.26257483105695417,
-  "lasso-diabetes": 0.6600347696455611,
-  "lasso-hard": 7.876416298523858,
-  "lasso-high": 5.383740876157189,
-  "lasso-medium": 4.6176712235735495,
-  "lasso-simple": 4.692285324276981
+  "any": {
+    "lasso-breastcancer": 0.26257483105695417,
+    "lasso-diabetes": 0.6600347696455611,
+    "lasso-hard": 7.876416298523858,
+    "lasso-high": 5.383740876157189,
+    "lasso-medium": 4.6176712235735495,
+    "lasso-simple": 4.692285324276981
+  }
 }
