@@ -152,6 +152,11 @@ jobs:
           # directory owned by the invoking user, so it reproduces none of the
           # read-only-filesystem failures that are the whole reason to test
           # Apptainer separately -- and the README tells users to build a .sif.
+          # Apptainer does not create its tmpdir, and staging is substantial: the
+          # uncompressed tarball is ~7.3 GB against a 2.6 GB image, on a runner
+          # with 15 GB of RAM. Pointing it at disk rather than letting it default
+          # is very likely what the earlier silent runner kills were about.
+          mkdir -p "$RUNNER_TEMP/apptainer"
           APPTAINER_TMPDIR="$RUNNER_TEMP/apptainer" \
             apptainer build bencher.sif ci.sdef
           ls -lh bencher.sif
