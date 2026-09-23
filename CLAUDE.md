@@ -51,11 +51,13 @@ Work on a single benchmark family locally (no Docker):
 
 ```shell
 cd LassoBenchmarks       # or MujocoBenchmarks, IOHBenchmarks, etc.
-uv sync                  # recreates .venv from uv.lock against the pinned .python-version
+version="$(cat .python-version)"
+uv python install "$version"
+UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync --python "$version"
 uv run start-benchmark-service   # starts that family's service on its own internal port
 ```
 
-To run the front door against locally-running family services, also `cd BencherServer && uv sync && uv run start-benchmark-service` — but note that the registry hardcodes `host: localhost` (default) and the family ports above must be free.
+To run the front door against locally-running family services, use `cd BencherServer`, then `version="$(cat .python-version)"`, `uv python install "$version"`, and `UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync --python "$version"` before `uv run start-benchmark-service` — but note that the registry hardcodes `host: localhost` (default) and the family ports above must be free.
 
 Apptainer / Singularity is documented in `README.md`; the same image is the base.
 

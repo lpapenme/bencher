@@ -98,7 +98,9 @@ jobs:
         env:
           UV_MANAGED_PYTHON: "1"
           UV_PYTHON_DOWNLOADS: never
-        run: uv sync --group dev
+        run: |
+          version="$(cat .python-version)"
+          uv sync --python "$version" --group dev
 
       - name: Wait for the front door
         env:

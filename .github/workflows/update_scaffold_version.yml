@@ -89,7 +89,8 @@ jobs:
             # --refresh-package, not `uv cache clean`: the old workflow wiped the
             # entire cache per package (slow), and a stale index is exactly why a
             # freshly published version can appear unresolvable.
-            ( cd "$pkg" && uv lock --refresh-package bencherscaffold )
+            python_version="$(cat "$pkg/.python-version")"
+            ( cd "$pkg" && uv lock --python "$python_version" --refresh-package bencherscaffold )
           done
           # Scoped to the files this step is allowed to touch, so an unrelated
           # dirty file in the workspace cannot trigger an empty PR.
@@ -107,7 +108,8 @@ jobs:
           UV_MANAGED_PYTHON: "1"
           UV_PYTHON_DOWNLOADS: never
         run: |
-          uv sync --group dev
+          version="$(cat .python-version)"
+          uv sync --python "$version" --group dev
           uv run pytest tests -q
 
       - name: Open a pull request

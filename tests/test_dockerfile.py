@@ -214,6 +214,11 @@ SCAFFOLD_WORKFLOW = (
     REPO_ROOT / ".github" / "workflows" / "update_scaffold_version.yml").read_text()
 UV_VENV_CHECK = (
     REPO_ROOT / ".github" / "scripts" / "verify_uv_venvs.sh").read_text()
+LOCAL_SETUP_DOCS = {
+    "README.md": (REPO_ROOT / "README.md").read_text(),
+    "AGENTS.md": (REPO_ROOT / "AGENTS.md").read_text(),
+    "CLAUDE.md": (REPO_ROOT / "CLAUDE.md").read_text(),
+}
 
 
 def _workflow_steps(workflow):
@@ -458,6 +463,69 @@ def test_ci_scopes_managed_python_to_sync_lock_and_run_steps(workflow):
     ]
     assert install_steps, "workflow has no explicit uv Python install"
     assert not any(_managed_python_env_is_set(step) for step in install_steps)
+
+
+@pytest.mark.parametrize("path, document", LOCAL_SETUP_DOCS.items())
+def test_local_setup_docs_sync_with_the_selected_python_pin(path, document):
+    """Local setup must select the pin it just installed, never discover one."""
+    assert 'version="$(cat .python-version)"' in document, (
+        f"{path} must derive a reusable version from .python-version")
+    assert 'uv python install "$version"' in document, (
+        f"{path} must install the selected version")
+    syncs = [line for line in document.splitlines() if "uv sync" in line]
+    assert syncs, f"{path} has no local uv sync command"
+    assert all(
+        'UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never' in sync
+        and '--python "$version"' in sync
+        for sync in syncs
+    ), f"{path} has a sync that does not explicitly select $version"
+
+
+def test_ci_sync_and_lock_steps_select_the_installed_pin():
+    """CI may download only in install steps, then must use the exact pin."""
+    contract_sync = next(
+        step for step in _workflow_steps(PR_WORKFLOW)
+        if "Install contract-test dependencies" in step)
+    assert re.search(
+        r'version="\$\(cat \.python-version\)"\s*\n'
+        r'\s*uv sync --python "\$version" --group dev',
+        _step_run_command(contract_sync),
+    )
+
+    package_sync = next(
+        step for step in _workflow_steps(PR_WORKFLOW)
+        if "name: Install dependencies" in step)
+    assert (
+        'uv sync --python "${{ matrix.pkg.python }}" --locked --group dev'
+        in _step_run_command(package_sync))
+
+    e2e_sync = next(
+        step for step in _workflow_steps(DOCKER_BUILD_WORKFLOW)
+        if "Install the e2e client" in step)
+    assert re.search(
+        r'version="\$\(cat \.python-version\)"\s*\n'
+        r'\s*uv sync --python "\$version" --group dev',
+        _step_run_command(e2e_sync),
+    )
+
+    lock_step = next(
+        step for step in _workflow_steps(SCAFFOLD_WORKFLOW)
+        if "Update the pin and the lock in every package" in step)
+    assert re.search(
+        r'python_version="\$\(cat "\$pkg/\.python-version"\)"\s*\n'
+        r'\s*\(\s*cd "\$pkg" && uv lock --python "\$python_version"'
+        r' --refresh-package bencherscaffold \)',
+        _step_run_command(lock_step),
+    )
+
+    scaffold_sync = next(
+        step for step in _workflow_steps(SCAFFOLD_WORKFLOW)
+        if "Run Tier 0 contract tests against the new scaffold" in step)
+    assert re.search(
+        r'version="\$\(cat \.python-version\)"\s*\n'
+        r'\s*uv sync --python "\$version" --group dev',
+        _step_run_command(scaffold_sync),
+    )
 
 
 def test_container_build_runs_pin_and_location_checks_before_each_e2e_suite():

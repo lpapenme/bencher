@@ -45,8 +45,9 @@ Install the exact interpreter pinned by the current directory before creating
 its environment. For the root contract suite:
 
 ```shell
-uv python install "$(cat .python-version)"
-UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync --group dev
+version="$(cat .python-version)"
+uv python install "$version"
+UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync --python "$version" --group dev
 UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv run pytest tests -q
 ```
 
@@ -55,8 +56,9 @@ isolated environment in the same way:
 
 ```shell
 cd LassoBenchmarks
-uv python install "$(cat .python-version)"
-UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync
+version="$(cat .python-version)"
+uv python install "$version"
+UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync --python "$version"
 UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv run start-benchmark-service
 ```
 

@@ -47,7 +47,9 @@ jobs:
         env:
           UV_MANAGED_PYTHON: "1"
           UV_PYTHON_DOWNLOADS: never
-        run: uv sync --group dev
+        run: |
+          version="$(cat .python-version)"
+          uv sync --python "$version" --group dev
       - name: Run contract tests
         env:
           UV_MANAGED_PYTHON: "1"
@@ -108,7 +110,7 @@ jobs:
         env:
           UV_MANAGED_PYTHON: "1"
           UV_PYTHON_DOWNLOADS: never
-        run: uv sync --locked --group dev
+        run: uv sync --python "${{ matrix.pkg.python }}" --locked --group dev
 
       - name: Run tests
         working-directory: ${{ matrix.pkg.package }}
