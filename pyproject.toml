@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Repo-wide contract tests for the bencher monorepo"
 requires-python = "~=3.11.0"
 dependencies = [
-    "bencherscaffold~=0.6.3",
+    "bencherscaffold~=0.6.4",
 ]
 
 [dependency-groups]

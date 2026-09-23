@@ -117,7 +117,10 @@ class MujocoServiceServicer(DualStackGRCPService):
             # x is in [0, 1] space, we need to map it to the benchmark space
             lb, ub = spec['bounds']
             x = lb + (ub - lb) * x
-            return -float(spec['factory']()(x)[0].squeeze())
+            # The seed must reach the rollout: functions.py spawns one child
+            # seed per rollout from it. Dropping it here silently made every
+            # MuJoCo benchmark non-reproducible while lunarlander looked fine.
+            return -float(spec['factory']()(x, seed=seed)[0].squeeze())
 
         return -self._lunarlander_reward(x.squeeze(), seed=seed)
 

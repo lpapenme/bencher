@@ -7,7 +7,7 @@ requires-python = ">=3.10,<4.0"
 readme = "README.md"
 dependencies = [
     "ioh (>=0.3.18,<0.4.0)",
-    "bencherscaffold~=0.6.3",
+    "bencherscaffold~=0.6.4",
 ]
 packages = [{ include = "iohbenchmarks" }]
 

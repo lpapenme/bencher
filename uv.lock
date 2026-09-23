@@ -17,7 +17,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "bencherscaffold", specifier = "~=0.6.3" }]
+requires-dist = [{ name = "bencherscaffold", specifier = "~=0.6.4" }]
 
 [package.metadata.requires-dev]
 dev = [
