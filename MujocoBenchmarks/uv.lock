@@ -23,7 +23,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/2f/c7/aa9ae1237f8c60e98
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5b/46/aa279cc1530162e0aabdd427d1bd3ee9287da87db41e5f860ac2f7e23b20/bencherscaffold-0.6.3-py3-none-any.whl", hash = "sha256:1be62464c1025f6a750e542e9e2fd021f0d93eb2448adcf2947002c576f67c7d", size = 12163, upload-time = "2026-09-22T12:35:18.801Z" },
 ]
-
 [[package]]
 name = "box2d"
 version = "2.3.10"

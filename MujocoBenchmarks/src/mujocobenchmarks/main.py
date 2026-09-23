@@ -79,19 +79,20 @@ class MujocoServiceServicer(DualStackGRCPService):
     ) -> EvaluationResult:
         x = [v.value for v in request.point.values]
         x = np.array(x).reshape(1, -1)
+        seed = request.random_seed if request.HasField('random_seed') else None
         if request.benchmark.name in func_factory_map.keys():
             # x is in [0, 1] space, we need to map it to the benchmark space
             lb, ub = benchmark_bounds[request.benchmark.name]
             x = lb + (ub - lb) * x
             func_factory = func_factory_map[request.benchmark.name](None)
             result = EvaluationResult(
-                objectives=[ObjectiveValue(name="f0", value=-float(func_factory(x)[0].squeeze()))],
+                objectives=[ObjectiveValue(name="f0", value=-float(func_factory(x, seed=seed)[0].squeeze()))],
             )
         elif request.benchmark.name == 'lunarlander':
             env = gym.make("LunarLander-v2")
             try:
                 total_reward = 0
-                s = env.reset()
+                s = env.reset(seed=seed)
                 while True:
                     a = heuristic_controller(s, x.squeeze())
                     s, r, terminated, _ = env.step(a)
