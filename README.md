@@ -39,6 +39,27 @@ docker pull gaunab/bencher:latest
 docker run -p 50051:50051 --restart always -d gaunab/bencher:latest
 ```
 
+## Local development
+
+Install the exact interpreter pinned by the current directory before creating
+its environment. For the root contract suite:
+
+```shell
+uv python install "$(cat .python-version)"
+UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync --group dev
+UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv run pytest tests -q
+```
+
+For an individual benchmark package, install its pin and synchronize its
+isolated environment in the same way:
+
+```shell
+cd LassoBenchmarks
+uv python install "$(cat .python-version)"
+UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync
+UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv run start-benchmark-service
+```
+
 ## Port Configuration
 
 Every service reads its listening port from an environment variable, falling back to the
@@ -156,7 +177,7 @@ Stage: build
     pip install your-dependencies
 
 %startscript
-    bash -c "python3.11 /entrypoint.py"
+    /opt/bencher/BencherServer/.venv/bin/python /entrypoint.py
 
 %runscript
     bash -c "your-command-to-run-your-app"

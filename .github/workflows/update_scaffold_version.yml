@@ -36,11 +36,10 @@ jobs:
           enable-cache: true
 
       - name: Install the interpreters each package pins
-        # uv can fetch these directly; pyenv + a source build is not needed just
-        # to re-lock.
+        # Include the root contract project as well as every package project.
         run: |
-          sort -u */.python-version | while read -r v; do
-            [ -n "$v" ] && uv python install "$v"
+          for version in $(cat .python-version */.python-version | sort -u); do
+            uv python install "$version"
           done
 
       - name: Resolve the target version
@@ -59,6 +58,9 @@ jobs:
 
       - name: Update the pin and the lock in every package
         id: bump
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: |
           set -euo pipefail
           version='${{ steps.resolve.outputs.version }}'
@@ -101,6 +103,9 @@ jobs:
         if: steps.bump.outputs.changed == 'true'
         # The gate. A release that reshapes EvaluationResult fails here, naming
         # every call site, before a PR is opened.
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: |
           uv sync --group dev
           uv run pytest tests -q

@@ -22,6 +22,8 @@ on:
     paths:
       - 'Dockerfile'
       - '.dockerignore'
+      - '.python-version'
+      - '*/.python-version'
       - 'container.sdef'
       - 'entrypoint.py'
       - 'docker/**'
@@ -77,6 +79,9 @@ jobs:
       - name: Start the container
         run: docker run -d --name bencher -p 50051:50051 ${{ env.TEST_TAG }}
 
+      - name: Verify Docker managed Python interpreters
+        run: docker exec -i bencher sh < .github/scripts/verify_uv_venvs.sh
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -84,15 +89,21 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install 3.11.13
+        run: uv python install "$(cat .python-version)"
 
       - name: Install the e2e client
         # The root project: bencherscaffold + pytest, nothing else. The e2e
         # assertions live in this repo now, so they version with the services
         # they test rather than in a separately checked-out client repo.
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: uv sync --group dev
 
       - name: Wait for the front door
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: |
           for _ in $(seq 1 60); do
             if uv run python -c "
@@ -106,6 +117,9 @@ jobs:
           echo "front door never came up"; docker logs bencher | tail -50; exit 1
 
       - name: Run e2e against the Docker container
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: uv run pytest tests/e2e -q --target localhost:50051
 
       - name: Dump service logs on failure
@@ -163,6 +177,9 @@ jobs:
           rm -f bencher-image.tar
           echo "--- resources after ---"; free -h; df -h /
 
+      - name: Verify Apptainer managed Python interpreters
+        run: apptainer exec bencher.sif sh < .github/scripts/verify_uv_venvs.sh
+
       - name: Start the Apptainer instance
         run: |
           # BO4Mob writes results to a *relative* `output/` path, and
@@ -177,6 +194,9 @@ jobs:
             bencher.sif bencher
 
       - name: Wait for the Apptainer front door
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: |
           for _ in $(seq 1 60); do
             if uv run python -c "
@@ -222,6 +242,9 @@ jobs:
         # Previously this ran `apptainer run instance://bencher`, but the
         # instance had been started as `bencherclient` -- the names did not
         # match, so this step could never have worked.
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: uv run pytest tests/e2e -q --target localhost:50051
 
       - name: BO4Mob wrote into the bound directory
@@ -235,6 +258,9 @@ jobs:
       - name: APPTAINERENV_ port overrides work
         # Documented in README.md as the way to move ports on HPC, and untested
         # until now. Uses a second instance on a different port.
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: |
           apptainer instance stop bencher || true
           APPTAINERENV_BENCHER_SERVER_PORT=60051 \

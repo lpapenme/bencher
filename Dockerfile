@@ -2,8 +2,8 @@
 #
 # Layer order is deliberate: everything is arranged so that an ordinary source
 # change re-runs as little as possible. Previously `COPY . /opt/bencher` sat
-# directly above the pyenv+uv sync step, so editing a README re-compiled three
-# CPythons, rebuilt every virtualenv and re-downloaded several hundred MB of
+# directly above the interpreter+uv sync step, so editing a README re-installed
+# three interpreters, rebuilt every virtualenv and re-downloaded several hundred MB of
 # datasets. The rule here is: the more expensive and the less often it changes,
 # the earlier it goes.
 #
@@ -13,14 +13,11 @@
 # dependency layer survive the source copy instead of being clobbered.
 
 ############################  system  ############################
-# OS packages, pyenv, MuJoCo, uv. Changes only when this file does.
+# OS packages, MuJoCo, uv. Changes only when this file does.
 # This used to be duplicated verbatim in a second stage, so the SUMO PPA and the
 # full apt install ran twice per build.
 FROM debian:bookworm-slim AS system
 
-# pyenv lives in /opt so it is readable by any user (Docker or Apptainer).
-ENV PYENV_ROOT="/opt/pyenv"
-ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:/root/.local/bin:$PATH"
 ENV LANG=C.UTF-8 \
     MUJOCO_PY_MUJOCO_PATH=/opt/mujoco210 \
     LD_LIBRARY_PATH="/opt/mujoco210/bin:/bin/usr/local/nvidia/lib64:/usr/lib/nvidia:${LD_LIBRARY_PATH-}" \
@@ -29,6 +26,7 @@ ENV LANG=C.UTF-8 \
     SVM_DATA_DIR=/opt/bencher-cache/svm \
     SUMO_HOME=/usr/share/sumo
 
+ARG UV_VERSION="0.9.2"
 ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
 ARG RUNTIME_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
@@ -41,23 +39,22 @@ RUN apt-get update -y && \
     apt-get install -y --no-install-recommends $RUNTIME_DEPENDENCIES && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl https://pyenv.run | bash
-
 WORKDIR /opt
 RUN curl -LO https://github.com/google-deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz && \
     tar -xf mujoco210-linux-x86_64.tar.gz && \
     rm mujoco210-linux-x86_64.tar.gz
 
-# uv to a global location rather than ~/.local/bin.
+# uv and its managed interpreters are globally readable for Docker and Apptainer.
 ENV UV_INSTALL_DIR="/usr/local/bin"
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV UV_PYTHON_INSTALL_DIR="/opt/uv-python"
+RUN curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
 
 ######################  interpreters  ############################
-# pyenv compiles CPython from source, minutes per version. This layer depends
-# ONLY on the .python-version files, so it survives every dependency and source
-# change. Packages are listed explicitly because a glob COPY would flatten nine
-# identically-named files into one; tests/test_dockerfile.py asserts this list
-# stays in step with the packages that actually exist.
+# This layer depends ONLY on the .python-version files, so it survives every
+# dependency and source change. Packages are listed explicitly because a glob
+# COPY would flatten nine identically-named files into one;
+# tests/test_dockerfile.py asserts this list stays in step with the packages
+# that actually exist.
 FROM system AS interpreters
 
 COPY BO4MobBenchmark/.python-version        /opt/bencher/BO4MobBenchmark/.python-version
@@ -70,28 +67,11 @@ COPY MujocoBenchmarks/.python-version       /opt/bencher/MujocoBenchmarks/.pytho
 COPY NoDependencyBenchmark/.python-version  /opt/bencher/NoDependencyBenchmark/.python-version
 COPY SVMBenchmarks/.python-version          /opt/bencher/SVMBenchmarks/.python-version
 
-# The cache must sit under PYENV_ROOT: pyenv stores downloaded CPython tarballs
-# in $PYENV_ROOT/cache, so a mount at /root/.pyenv/cache caught nothing and every
-# cold build re-downloaded all three.
-RUN --mount=type=cache,target=/opt/pyenv/cache \
-    sort -u /opt/bencher/*/.python-version | tr -d '[:blank:]' | while read -r version; do \
-        [ -n "$version" ] || continue; \
-        if ! pyenv versions --bare | grep -q "^${version}$"; then \
-            echo "Installing Python ${version}..."; \
-            pyenv install "$version"; \
-        fi; \
+RUN --mount=type=cache,target=/root/.cache \
+    for version in $(sort -u /opt/bencher/*/.python-version); do \
+        uv python install "$version"; \
     done && \
-    # Pin the default interpreter in the image itself. The entrypoint runs
-    # `python3.11`, which is a pyenv *shim*: it resolves via PYENV_VERSION, then
-    # a .python-version walking up from the CWD, then $PYENV_ROOT/version. Docker
-    # only works by accident of WORKDIR /opt/bencher containing a
-    # .python-version; Apptainer ignores Docker's WORKDIR and starts in the host
-    # CWD, so without this the shim cannot resolve and the instance fails to
-    # start. Setting it here fixes every derived image, including the sdef
-    # template users are told to copy in the README.
-    pyenv global 3.11.13 && \
-    pyenv rehash && \
-    chmod -R a+rX "$PYENV_ROOT"
+    chmod -R a+rX "$UV_PYTHON_INSTALL_DIR"
 
 #########################  dependencies  #########################
 # Third-party dependencies only -- no project source, so editing a service does
@@ -115,7 +95,8 @@ RUN --mount=type=cache,target=/root/.cache \
         cd "$dir"; \
         version=$(tr -d '[:space:]' < .python-version); \
         echo "Installing dependencies for $(basename $dir) with Python ${version}..."; \
-        PYENV_VERSION=$version uv sync --frozen --compile-bytecode --no-dev --no-install-project; \
+        UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never \
+          uv sync --python "$version" --frozen --compile-bytecode --no-dev --no-install-project; \
     done && \
     # Force mujoco-py to compile its cymj extension now. It builds the .so into
     # its own site-packages on first import, which succeeds in Docker's writable
@@ -176,11 +157,12 @@ RUN --mount=type=cache,target=/root/.cache \
         [ -f "$dir/pyproject.toml" ] || continue; \
         cd "$dir"; \
         version=$(tr -d '[:space:]' < .python-version); \
-        PYENV_VERSION=$version uv sync --frozen --compile-bytecode --no-dev; \
+        UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never \
+          uv sync --python "$version" --frozen --compile-bytecode --no-dev; \
     done
 
 # Apptainer runs as a non-root user, so everything must be world-readable. The
-# expensive trees (pyenv, the virtualenvs, the datasets) are already chmod'ed in
+# expensive interpreter, virtualenv, and dataset trees are already chmod'ed in
 # the stages that create them, and those layers are cached; only the source
 # copied just above still needs it. Doing all of it here instead cost 462s on
 # every source change -- 96% of the rebuild.
@@ -195,4 +177,4 @@ ENV UV_CACHE_DIR=/tmp/.uv-cache \
 
 WORKDIR /opt/bencher
 EXPOSE 50051
-ENTRYPOINT ["python3.11", "/entrypoint.py"]
+ENTRYPOINT ["/opt/bencher/BencherServer/.venv/bin/python", "/entrypoint.py"]
