@@ -27,6 +27,15 @@ on:
       - 'docker/**'
       - '.github/workflows/docker_build.yml'
 
+# One image build at a time per ref. This job is ~15 minutes and can be started
+# from four different triggers at once (a push, the matching pull_request, a
+# schedule and a manual dispatch), which leaves several multi-GB builds fighting
+# for runners. cancel-in-progress is deliberately false: killing a build that is
+# most of the way through wastes more than it saves, so later runs queue instead.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   TEST_TAG: bencher:ci
 
