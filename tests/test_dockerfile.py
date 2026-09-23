@@ -72,3 +72,50 @@ def test_referenced_prefetch_scripts_exist(script):
         f"docker/{script} exists but the Dockerfile does not run it")
     assert (REPO_ROOT / "docker" / script).is_file(), (
         f"Dockerfile runs {script} but docker/{script} does not exist")
+
+
+PR_WORKFLOW = (REPO_ROOT / ".github" / "workflows" / "pr-checks.yml").read_text()
+
+
+def _container_lane_packages():
+    """Packages whose tests run inside the built image."""
+    import tomllib
+    out = []
+    for pkg in PACKAGES:
+        config = tomllib.loads((pkg / "pyproject.toml").read_text())
+        tier = config.get("tool", {}).get("bencher", {}).get("ci", {}).get("tier")
+        if tier == "container" and (pkg / "tests").is_dir():
+            out.append(pkg)
+    return out
+
+
+def test_container_leg_mounts_the_shared_test_harness():
+    """Container-tier tests import the harness from the repo-root tests/.
+
+    That path resolves to /opt/bencher/tests inside the image, which
+    .dockerignore deliberately keeps empty -- so the directory must be mounted
+    or the tests fail at collection with ModuleNotFoundError. This exact
+    omission broke the first container run.
+    """
+    assert '-v "$PWD/tests:/opt/bencher/tests:ro"' in PR_WORKFLOW, (
+        "the container leg must mount the repo-root tests/ so package tests can "
+        "import tests/grpc_harness.py")
+
+
+def test_container_leg_mounts_each_package_test_directory():
+    assert '-v "$PWD/$package/tests:/opt/bencher/$package/tests:ro"' in PR_WORKFLOW
+
+
+@pytest.mark.parametrize("pkg", _container_lane_packages(),
+                         ids=lambda p: p.name)
+def test_container_lane_tests_only_reach_paths_the_image_has(pkg):
+    """Their tests may reach outside the package only into tests/ -- the one
+    directory the container leg mounts."""
+    offenders = []
+    for path in sorted((pkg / "tests").glob("*.py")):
+        for line in path.read_text().splitlines():
+            if "parents[2]" in line and '"tests"' not in line:
+                offenders.append(f"{rel(path)}: {line.strip()}")
+    assert not offenders, (
+        "container-tier tests reach a repo path the image does not mount:\n"
+        + "\n".join(offenders))

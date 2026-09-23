@@ -143,12 +143,18 @@ jobs:
         # Tests are mounted read-only rather than baked in: .dockerignore keeps
         # tests/ out of the image so editing a test cannot invalidate the final
         # layer. Read-only also makes --update-goldens impossible in CI.
+        #
+        # The repo-root tests/ is mounted too, not just the package's own: the
+        # package conftests import the shared Tier 2 harness from
+        # <repo>/tests/grpc_harness.py, which resolves to /opt/bencher/tests
+        # inside the image -- a path .dockerignore deliberately keeps empty.
         run: |
           set -euo pipefail
           failed=0
           for package in $(echo '${{ needs.discover.outputs.container }}' | jq -r '.[].package'); do
             echo "::group::$package"
             docker run --rm \
+              -v "$PWD/tests:/opt/bencher/tests:ro" \
               -v "$PWD/$package/tests:/opt/bencher/$package/tests:ro" \
               -w "/opt/bencher/$package" --entrypoint sh bencher:ci -c "
                 /usr/local/bin/uv pip install --quiet \
