@@ -122,3 +122,46 @@ def test_lockfile_is_up_to_date_with_pyproject(pkg):
     assert result.returncode == 0, (
         f"{rel(pkg)}: uv.lock is out of date with pyproject.toml.\n"
         f"Run `cd {rel(pkg)} && uv lock`.\n{result.stderr.strip()}")
+
+
+VALID_TIERS = {"runner", "container"}
+
+
+def _ci_tier(pkg) -> str | None:
+    return _pyproject(pkg).get("tool", {}).get("bencher", {}).get("ci", {}).get("tier")
+
+
+@pytest.mark.parametrize("pkg", PACKAGES, ids=PACKAGE_IDS)
+def test_package_declares_a_valid_ci_tier(pkg):
+    """CI derives its matrix from these, so an undeclared package is untested.
+
+    The tier lives next to the package it describes, and defaults to "runner" in
+    the discovery script -- so forgetting it produces an extra CI leg rather than
+    a silent gap. An *invalid* value would be silently dropped, hence this check.
+    """
+    tier = _ci_tier(pkg)
+    assert tier is not None, (
+        f"{rel(pkg)}/pyproject.toml has no [tool.bencher.ci] tier; add one of "
+        f"{sorted(VALID_TIERS)}")
+    assert tier in VALID_TIERS, f"{rel(pkg)}: unknown ci tier {tier!r}"
+
+
+@pytest.mark.parametrize("pkg", PACKAGES, ids=PACKAGE_IDS)
+def test_package_with_tests_can_run_them(pkg):
+    """A tests/ directory is only useful if `uv run --group dev pytest` works."""
+    if not (pkg / "tests").is_dir():
+        pytest.skip(f"{rel(pkg)} has no tests/")
+    groups = _pyproject(pkg).get("dependency-groups", {})
+    dev = groups.get("dev", [])
+    assert any("pytest" in str(entry) for entry in dev), (
+        f"{rel(pkg)} has tests/ but no `dev` dependency group containing pytest, "
+        f"so its CI leg would fail to install")
+    assert "pytest" in str(_pyproject(pkg).get("tool", {})), (
+        f"{rel(pkg)} has tests/ but no [tool.pytest.ini_options]; it would "
+        f"inherit the repo-root config and collect the wrong paths")
+
+
+def test_every_package_has_tests():
+    """All nine run on PRs; a package without tests is an untested CI leg."""
+    missing = [rel(p) for p in PACKAGES if not (p / "tests").is_dir()]
+    assert not missing, f"packages with no tests/: {missing}"

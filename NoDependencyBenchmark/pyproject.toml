@@ -25,3 +25,7 @@ build-backend = "uv_build"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.bencher.ci]
+# Pure numpy; the tests touch no network.
+tier = "runner"

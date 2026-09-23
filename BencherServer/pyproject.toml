@@ -11,9 +11,21 @@ dependencies = [
     "bencherscaffold~=0.6.4",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+]
+
 [project.scripts]
 start-benchmark-service = "bencherserver.main:serve"
 
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.bencher.ci]
+# Runs on a plain GitHub runner: grpcio and protobuf only.
+tier = "runner"

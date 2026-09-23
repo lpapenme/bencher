@@ -13,9 +13,23 @@ dependencies = [
     "xgboost>=3.0.1,<4",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+]
+
 [project.scripts]
 start-benchmark-service = "svmbenchmarks.main:serve"
 
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "dataset: needs a baked-in dataset; runs on the container tier only",
+]
+
+[tool.bencher.ci]
+tier = "runner"

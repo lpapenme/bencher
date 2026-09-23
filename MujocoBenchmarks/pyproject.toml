@@ -36,3 +36,7 @@ build-backend = "uv_build"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 filterwarnings = ["ignore::UserWarning"]
+
+[tool.bencher.ci]
+# Needs mujoco210 plus patchelf/osmesa, which ubuntu-24.04 no longer packages.
+tier = "container"

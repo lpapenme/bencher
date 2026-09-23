@@ -11,6 +11,11 @@ dependencies = [
     "numpy>=1.20.1,<2",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+]
+
 [project.scripts]
 start-benchmark-service = "ebobenchmarks.main:serve"
 
@@ -22,3 +27,12 @@ ebo = { git = "https://github.com/LeoIV/Ensemble-Bayesian-Optimization.git" }
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "dataset: needs a baked-in dataset; runs on the container tier only",
+]
+
+[tool.bencher.ci]
+tier = "container"

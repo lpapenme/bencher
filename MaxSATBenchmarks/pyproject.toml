@@ -25,3 +25,7 @@ build-backend = "uv_build"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.bencher.ci]
+# Small corpora, cached in CI.
+tier = "runner"
