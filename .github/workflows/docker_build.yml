@@ -96,7 +96,11 @@ jobs:
           done' || true
 
       - name: Stop the Docker container
-        run: docker rm -f bencher
+        # Unconditional: a failed e2e run would otherwise leave the container
+        # holding port 50051, and the Apptainer instance below would fail to
+        # bind -- replacing the real failure with a confusing port conflict.
+        if: always()
+        run: docker rm -f bencher || true
 
       - name: Set up Apptainer
         uses: eWaterCycle/setup-apptainer@v2

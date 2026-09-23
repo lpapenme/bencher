@@ -63,7 +63,11 @@ jobs:
           set -euo pipefail
           version='${{ steps.resolve.outputs.version }}'
           # `~=X.Y.Z` keeps the compatible-release form the repo already uses.
-          for dir in */; do
+          # The repo root is included deliberately: it is the contract-test
+          # project, it pins bencherscaffold too, and Tier 0 asserts that the
+          # root and every package lock the *same* version -- so skipping it
+          # would make this workflow fail its own gate.
+          for dir in . */; do
             pkg="${dir%/}"
             [ -f "$pkg/pyproject.toml" ] || continue
             grep -q 'bencherscaffold' "$pkg/pyproject.toml" || continue
@@ -87,7 +91,7 @@ jobs:
           done
           # Scoped to the files this step is allowed to touch, so an unrelated
           # dirty file in the workspace cannot trigger an empty PR.
-          if git diff --quiet -- '*/pyproject.toml' '*/uv.lock'; then
+          if git diff --quiet -- pyproject.toml uv.lock '*/pyproject.toml' '*/uv.lock'; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"

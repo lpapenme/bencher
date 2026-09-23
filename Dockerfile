@@ -70,7 +70,10 @@ COPY MujocoBenchmarks/.python-version       /opt/bencher/MujocoBenchmarks/.pytho
 COPY NoDependencyBenchmark/.python-version  /opt/bencher/NoDependencyBenchmark/.python-version
 COPY SVMBenchmarks/.python-version          /opt/bencher/SVMBenchmarks/.python-version
 
-RUN --mount=type=cache,target=/root/.pyenv/cache \
+# The cache must sit under PYENV_ROOT: pyenv stores downloaded CPython tarballs
+# in $PYENV_ROOT/cache, so a mount at /root/.pyenv/cache caught nothing and every
+# cold build re-downloaded all three.
+RUN --mount=type=cache,target=/opt/pyenv/cache \
     sort -u /opt/bencher/*/.python-version | tr -d '[:blank:]' | while read -r version; do \
         [ -n "$version" ] || continue; \
         if ! pyenv versions --bare | grep -q "^${version}$"; then \
