@@ -125,6 +125,17 @@ def load_data_53(
     return train_x, train_y, test_x, test_y
 
 
+# The benchmarks this service serves, as data. `loader` picks the feature set;
+# dimensions and type mirror benchmark-registry.json, which tests/test_registry.py
+# cross-checks against these declarations.
+BENCHMARKS = {
+    'svm': {
+        'dimensions': 388, 'type': 'purely_continuous', 'loader': load_data_388},
+    'svmmixed': {
+        'dimensions': 53, 'type': 'mixed', 'loader': load_data_53},
+}
+
+
 class SvmServiceServicer(DualStackGRCPService):
     """
     This class is a GRCP service for SVM evaluation.
@@ -175,37 +186,57 @@ class SvmServiceServicer(DualStackGRCPService):
 
         Please note that this method assumes that the benchmark name in the request is "svm". If the benchmark name is different, an assertion error will occur.
         """
-        valid_benchmark_names = ['svm', 'svmmixed']
-        assert request.benchmark.name in valid_benchmark_names, f"Invalid benchmark name: {request.benchmark.name}. Expected one of {valid_benchmark_names}"
-        if request.benchmark.name == 'svmmixed':
-            loader = load_data_53
-        elif request.benchmark.name == 'svm':
-            loader = load_data_388
-        else:
+        x = np.array([v.value for v in request.point.values])
+        value = self.evaluate(request.benchmark.name, x)
+        return EvaluationResult(
+            objectives=[ObjectiveValue(name="f0", value=value)],
+        )
+
+    @staticmethod
+    def hyperparameters(x: np.ndarray) -> tuple:
+        """The SVR hyperparameters encoded in the last three coordinates.
+
+        The mapping is non-linear and easy to get subtly wrong, so it is exposed
+        separately and pinned by tests rather than buried in evaluate_point.
+        """
+        C = 0.01 * (500 ** x[-1])
+        gamma = 0.1 * (30 ** x[-2])
+        epsilon = 0.01 * (100 ** x[-3])
+        return C, gamma, epsilon
+
+    def evaluate(
+            self,
+            name: str,
+            x: np.ndarray,
+            seed: int | None = None
+    ) -> float:
+        """Evaluate a point given in [0, 1]^d; returns the test RMSE.
+
+        Split out of evaluate_point so the hyperparameter mapping and the
+        feature selection can be tested without a gRPC server. The underlying
+        SVR fit is deterministic, so `seed` is unused.
+        """
+        if name not in BENCHMARKS:
             raise ValueError(
-                f"Invalid benchmark name: {request.benchmark.name}. Expected one of {valid_benchmark_names}"
-            )
+                f"Invalid benchmark name: {name}. Expected one of {sorted(BENCHMARKS)}")
+        loader = BENCHMARKS[name]['loader']
 
         with lock:
             if self.data_initialized is None or self.data_initialized != loader:
                 self.initialize_data(loader)
                 self.data_initialized = loader
 
-        x = [v.value for v in request.point.values]
         x = np.array(x).squeeze()
-        C = 0.01 * (500 ** x[-1])
-        gamma = 0.1 * (30 ** x[-2])
-        epsilon = 0.01 * (100 ** x[-3])
+        C, gamma, epsilon = self.hyperparameters(x)
+
         if loader == load_data_53:
+            # The leading coordinates are a binary feature mask.
             inds_selected = np.where(x[np.arange(len(x) - 3)] == 1)[0]
             if len(inds_selected) == 0:
-                return EvaluationResult(
-                    objectives=[ObjectiveValue(name="f0", value=1.0)],
-                )
-            else:
-                _x_fit = self._X_train[:, inds_selected]
-                _x_pred = self._X_test[:, inds_selected]
-        elif loader == load_data_388:
+                return 1.0
+            _x_fit = self._X_train[:, inds_selected]
+            _x_pred = self._X_test[:, inds_selected]
+        else:
             length_scales = np.exp(4 * x[:-3] - 2)
             _x_fit = self._X_train / length_scales
             _x_pred = self._X_test / length_scales
@@ -213,11 +244,7 @@ class SvmServiceServicer(DualStackGRCPService):
         svr = SVR(gamma=gamma, epsilon=epsilon, C=C, cache_size=1500, tol=0.001)
         svr.fit(_x_fit, self._y_train)
         pred = svr.predict(_x_pred)
-        error = np.sqrt(np.mean(np.square(pred - self._y_test)))
-        result = EvaluationResult(
-            objectives=[ObjectiveValue(name="f0", value=float(error))],
-        )
-        return result
+        return float(np.sqrt(np.mean(np.square(pred - self._y_test))))
 
 
 def serve():

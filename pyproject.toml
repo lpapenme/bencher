@@ -1,0 +1,26 @@
+# Root project. Deliberately NOT a benchmark package: it exists only to give the
+# Tier 0 contract tests a home and an interpreter. It depends on bencherscaffold
+# (to read the real protobuf descriptors) and nothing else, so `uv run pytest tests`
+# works without installing torch, mujoco, ioh or sklearn.
+[project]
+name = "bencher-contract-tests"
+version = "0.1.0"
+description = "Repo-wide contract tests for the bencher monorepo"
+requires-python = "~=3.11.0"
+dependencies = [
+    "bencherscaffold~=0.6.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+    "packaging>=24",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# e2e needs a running container; it is opt-in via `pytest tests/e2e`.
+addopts = "--strict-markers --ignore=tests/e2e"
+markers = [
+    "e2e: requires a running bencher container (not run by default)",
+]

@@ -11,9 +11,17 @@ dependencies = [
     "requests>=2.31.0,<3",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+]
+
 [project.scripts]
 start-benchmark-service = "nodependencybenchmark.main:serve"
 
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

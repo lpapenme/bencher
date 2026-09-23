@@ -18,24 +18,27 @@ DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "data" / "maxsat"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 directory_name = str(DATA_DIR)
 
-filename_map = {
-    'maxsat60' : 'frb10-6-4.wcnf',
-    'maxsat125': 'cluster-expansion-IS1_5.0.5.0.0.5_softer_periodic.wcnf'
-}
-
-normalize_weights_map = {
-    'maxsat60' : True,
-    'maxsat125': False
-}
-
-negative_weights_map = {
-    'maxsat60' : False,
-    'maxsat125': True
-}
-
-data_loader_map = {
-    'maxsat60' : download_maxsat60_data,
-    'maxsat125': download_maxsat125_data
+# The benchmarks this service serves, as data. One entry per benchmark rather
+# than four dicts keyed the same way, so adding a corpus cannot half-land and
+# benchmark-registry.json stays checkable without importing anything
+# (see tests/test_registry.py).
+BENCHMARKS = {
+    'maxsat60': {
+        'dimensions': 60,
+        'type': 'purely_binary',
+        'filename': 'frb10-6-4.wcnf',
+        'normalize_weights': True,
+        'negative_weights': False,
+        'data_loader': download_maxsat60_data,
+    },
+    'maxsat125': {
+        'dimensions': 125,
+        'type': 'purely_binary',
+        'filename': 'cluster-expansion-IS1_5.0.5.0.0.5_softer_periodic.wcnf',
+        'normalize_weights': False,
+        'negative_weights': True,
+        'data_loader': download_maxsat125_data,
+    },
 }
 
 lock = threading.Lock()
@@ -105,9 +108,10 @@ class MaxSATServiceServicer(DualStackGRCPService):
             - clauses: A matrix representing the clauses where each row corresponds to a clause and each column corresponds to a variable.
 
         """
-        assert benchmark in filename_map.keys(), "Invalid benchmark name"
-        fname = filename_map[benchmark]
-        dataloader = data_loader_map[benchmark]
+        assert benchmark in BENCHMARKS, "Invalid benchmark name"
+        spec = BENCHMARKS[benchmark]
+        fname = spec['filename']
+        dataloader = spec['data_loader']
         # download data if not present
         with lock:
             dataloader(directory_name)
@@ -119,7 +123,7 @@ class MaxSATServiceServicer(DualStackGRCPService):
         )
         dim = wcnf.nv
 
-        normalize_weights = normalize_weights_map[benchmark]
+        normalize_weights = spec['normalize_weights']
 
         weights = np.array(wcnf.weights, dtype=np.float64)
         total_weight = weights.sum()
@@ -148,27 +152,34 @@ class MaxSATServiceServicer(DualStackGRCPService):
         :param context: The context in which the evaluation is being performed.
         :return: Instance of the EvaluationResult class, containing the evaluated value.
         """
-        assert request.benchmark.name in filename_map.keys(), "Invalid benchmark name"
-        x = [v.value for v in request.point.values]
-        x = np.array(x)
+        x = np.array([v.value for v in request.point.values])
+        value = self.evaluate(request.benchmark.name, x)
+        return EvaluationResult(
+            objectives=[ObjectiveValue(name="f0", value=value)],
+        )
+
+    def evaluate(
+            self,
+            name: str,
+            x: np.ndarray,
+            seed: int | None = None
+    ) -> float:
+        """Evaluate a binary assignment against a MaxSAT instance.
+
+        Split out of evaluate_point so the binary check and weighting are
+        testable without a gRPC server. MaxSAT is deterministic, so `seed` is
+        unused.
+        """
+        if name not in BENCHMARKS:
+            raise ValueError(
+                f"Invalid benchmark name {name!r}; this service serves {sorted(BENCHMARKS)}")
         # check that x is binary
         assert np.all(np.logical_or(x == 0, x == 1)), "Input must be binary"
 
-        weights, total_weight, clauseidxs, clauses = self.get_wcnf_weights_totalweight_clauseidxs_clauses(
-            request.benchmark.name
-        )
-
-        negative_weights = negative_weights_map[request.benchmark.name]
-
-        result = EvaluationResult(
-            objectives=[
-                ObjectiveValue(
-                    name="f0",
-                    value=eval(x, weights, total_weight, clauseidxs, clauses, negative_weights),
-                )
-            ],
-        )
-        return result
+        weights, total_weight, clauseidxs, clauses = \
+            self.get_wcnf_weights_totalweight_clauseidxs_clauses(name)
+        return eval(x, weights, total_weight, clauseidxs, clauses,
+                    BENCHMARKS[name]['negative_weights'])
 
 
 def serve():

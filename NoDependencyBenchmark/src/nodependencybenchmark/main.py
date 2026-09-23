@@ -20,10 +20,15 @@ else:
     directory_file_descriptor = tempfile.TemporaryDirectory()
     directory_name = directory_file_descriptor.name
 
-SUPPORTED_BENCHMARKS = [
-    'mopta08',
-    'pestcontrol'
-]
+# The benchmarks this service serves, as data. One declarative mapping per
+# service keeps benchmark-registry.json checkable without importing anything
+# (see tests/test_registry.py).
+BENCHMARKS = {
+    'mopta08': {'dimensions': 124, 'type': 'purely_continuous'},
+    'pestcontrol': {'dimensions': 25, 'type': 'purely_categorical'},
+}
+
+SUPPORTED_BENCHMARKS = list(BENCHMARKS)
 
 
 # Source: https://github.com/aryandeshwal/BODi/blob/main/bodi/pestcontrol.py
@@ -137,6 +142,32 @@ def download_mopta_executable(
         print(f"Downloaded {executable_name}")
 
 
+# Which MOPTA binary a given architecture needs. Kept as data so the lookup can
+# be done without constructing a servicer (the Docker prefetch does exactly that).
+_MOPTA_EXECUTABLES = {
+    ("armv7l", 32): "mopta08_armhf.bin",
+    ("x86_64", 64): "mopta08_elf64.bin",
+    ("i386", 32): "mopta08_elf32.bin",
+    ("amd64", 64): "mopta08_amd64.exe",
+}
+
+
+def mopta_executable_basename() -> str:
+    """Name of the MOPTA binary for the running architecture.
+
+    Raises only when MOPTA is actually needed, so architectures without a binary
+    can still serve the benchmarks that do not use one.
+    """
+    sysarch = 64 if sys.maxsize > 2 ** 32 else 32
+    key = (machine().lower(), sysarch)
+    if key not in _MOPTA_EXECUTABLES:
+        raise RuntimeError(
+            f"mopta08 has no executable for architecture {key[0]!r} ({key[1]}-bit); "
+            f"supported: {sorted({m for m, _ in _MOPTA_EXECUTABLES})}"
+        )
+    return _MOPTA_EXECUTABLES[key]
+
+
 class NoDependencyServiceServicer(DualStackGRCPService):
 
     def __init__(
@@ -149,27 +180,20 @@ class NoDependencyServiceServicer(DualStackGRCPService):
         self.sysarch = 64 if sys.maxsize > 2 ** 32 else 32
         self.machine = machine().lower()
 
-        if self.machine == "armv7l":
-            assert self.sysarch == 32, "Not supported"
-            self._mopta_exectutable_basename = "mopta08_armhf.bin"
-        elif self.machine == "x86_64":
-            assert self.sysarch == 64, "Not supported"
-            self._mopta_exectutable_basename = "mopta08_elf64.bin"
-        elif self.machine == "i386":
-            assert self.sysarch == 32, "Not supported"
-            self._mopta_exectutable_basename = "mopta08_elf32.bin"
-        elif self.machine == "amd64":
-            assert self.sysarch == 64, "Not supported"
-            self._mopta_exectutable_basename = "mopta08_amd64.exe"
-        else:
-            raise RuntimeError("Machine with this architecture is not supported")
-
-        self._mopta_exectutable = os.path.join(
-            directory_name, self._mopta_exectutable_basename
-        )
-
+        # The MOPTA binary is x86-only, but pestcontrol is pure numpy. Resolving
+        # the architecture here used to raise on anything else -- including Apple
+        # Silicon -- so the servicer could not even be constructed for local
+        # testing. It is resolved lazily now, when mopta08 is actually requested.
         self.directory_file_descriptor = tempfile.TemporaryDirectory()
         self.directory_name = self.directory_file_descriptor.name
+
+    @property
+    def _mopta_exectutable_basename(self) -> str:
+        return mopta_executable_basename()
+
+    @property
+    def _mopta_exectutable(self) -> str:
+        return os.path.join(directory_name, self._mopta_exectutable_basename)
 
     def evaluate_point(
             self,
@@ -190,25 +214,33 @@ class NoDependencyServiceServicer(DualStackGRCPService):
             :rtype: EvaluationResult
 
         """
-        assert request.benchmark.name in SUPPORTED_BENCHMARKS, "Invalid benchmark name"
-
-        x = [v.value for v in request.point.values]
-        x = np.array(x)
-
-        match request.benchmark.name:
-            case "mopta08":
-                download_mopta_executable(self._mopta_exectutable_basename)
-                # mopta is in [0, 1]^n so we don't need to scale
-                fun = self.eval_mopta08
-            case "pestcontrol":
-                fun = _pest_control_score
-            case _:
-                raise ValueError("Invalid benchmark name")
-
-        result = EvaluationResult(
-            objectives=[ObjectiveValue(name="f0", value=fun(x))],
+        x = np.array([v.value for v in request.point.values])
+        value = self.evaluate(request.benchmark.name, x)
+        return EvaluationResult(
+            objectives=[ObjectiveValue(name="f0", value=value)],
         )
-        return result
+
+    def evaluate(
+            self,
+            name: str,
+            x: np.ndarray,
+            seed: int | None = None
+    ) -> float:
+        """Evaluate a point in the benchmark's native domain.
+
+        Split out of evaluate_point so normalisation and dispatch can be tested
+        without standing up a gRPC server. `seed` is accepted for the benchmarks
+        that are stochastic; it is threaded from BenchmarkRequest.random_seed.
+        """
+        if name not in BENCHMARKS:
+            raise ValueError(
+                f"Invalid benchmark name {name!r}; this service serves {SUPPORTED_BENCHMARKS}")
+
+        if name == "mopta08":
+            # mopta is in [0, 1]^n so we don't need to scale
+            download_mopta_executable(self._mopta_exectutable_basename)
+            return self.eval_mopta08(x)
+        return _pest_control_score(x, seed=seed)
 
     def eval_mopta08(
             self,

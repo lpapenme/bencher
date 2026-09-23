@@ -1,0 +1,42 @@
+name: PR checks
+
+# Fast, dependency-free guards that gate every change. These do NOT build the
+# container: they parse source and config against the installed bencherscaffold,
+# so the whole suite runs in seconds rather than the ~40 minutes docker_build.yml
+# needs. See .claude/plans or the repo docs for the tiering rationale.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  # Let the scaffold-bump workflow gate itself on these checks.
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  contract:
+    name: Tier 0 - contract tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.2"
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11.13
+
+      - name: Install contract-test dependencies
+        # Root project only: pytest + bencherscaffold. No benchmark package is
+        # installed here, which is the whole point of this tier.
+        run: uv sync --group dev
+
+      - name: Run contract tests
+        run: uv run pytest tests -q

@@ -343,8 +343,8 @@ The following benchmarks are available:
 | graph-maxcut2002           | 800          | binary      | [^11]          | &#x2612; |
 | graph-maxcut2003           | 800          | binary      | [^11]          | &#x2612; |
 | graph-maxcut2004           | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcoverage2100      | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcoverage2101      | 800          | binary      | [^11]          | &#x2612; |
+| graph-maxcoverage2100      | 450          | binary      | [^11]          | &#x2612; |
+| graph-maxcoverage2101      | 450          | binary      | [^11]          | &#x2612; |
 
 # Citation
 If you use this repository or the benchmarks in your research, please cite the following [paper](https://arxiv.org/abs/2505.21321):

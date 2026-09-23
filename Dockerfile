@@ -1,8 +1,24 @@
-# Stage 1: The Builder
-FROM debian:bookworm-slim AS builder
+# Bencher container.
+#
+# Layer order is deliberate: everything is arranged so that an ordinary source
+# change re-runs as little as possible. Previously `COPY . /opt/bencher` sat
+# directly above the pyenv+uv sync step, so editing a README re-compiled three
+# CPythons, rebuilt every virtualenv and re-downloaded several hundred MB of
+# datasets. The rule here is: the more expensive and the less often it changes,
+# the earlier it goes.
+#
+# There is also a .dockerignore now. Without it the build context was ~3.8 GB,
+# almost all of it local .venv directories -- which this file then overwrote.
+# Excluding them is what makes the split COPY below safe: the venvs built in the
+# dependency layer survive the source copy instead of being clobbered.
 
-# --- CHANGE 1: Move pyenv out of /root ---
-# We use /opt/pyenv so it is globally readable by any user (Docker or Apptainer)
+############################  system  ############################
+# OS packages, pyenv, MuJoCo, uv. Changes only when this file does.
+# This used to be duplicated verbatim in a second stage, so the SUMO PPA and the
+# full apt install ran twice per build.
+FROM debian:bookworm-slim AS system
+
+# pyenv lives in /opt so it is readable by any user (Docker or Apptainer).
 ENV PYENV_ROOT="/opt/pyenv"
 ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:/root/.local/bin:$PATH"
 ENV LANG=C.UTF-8 \
@@ -13,7 +29,6 @@ ENV LANG=C.UTF-8 \
     SVM_DATA_DIR=/opt/bencher-cache/svm \
     SUMO_HOME=/usr/share/sumo
 
-# ... (Arg definitions and apt-get installs remain the same) ...
 ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
 ARG RUNTIME_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
@@ -26,141 +41,138 @@ RUN apt-get update -y && \
     apt-get install -y --no-install-recommends $RUNTIME_DEPENDENCIES && \
     rm -rf /var/lib/apt/lists/*
 
-# Install pyenv
 RUN curl https://pyenv.run | bash
 
 WORKDIR /opt
-
-# ... (Mujoco install remains the same) ...
 RUN curl -LO https://github.com/google-deepmind/mujoco/releases/download/2.1.0/mujoco210-linux-x86_64.tar.gz && \
     tar -xf mujoco210-linux-x86_64.tar.gz && \
     rm mujoco210-linux-x86_64.tar.gz
 
-# --- CHANGE 2: Install uv to a global location ---
-# By default uv installs to ~/.local/bin. We force it to /usr/local/bin
+# uv to a global location rather than ~/.local/bin.
 ENV UV_INSTALL_DIR="/usr/local/bin"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-COPY . /opt/bencher
-WORKDIR /opt/bencher
+######################  interpreters  ############################
+# pyenv compiles CPython from source, minutes per version. This layer depends
+# ONLY on the .python-version files, so it survives every dependency and source
+# change. Packages are listed explicitly because a glob COPY would flatten nine
+# identically-named files into one; tests/test_dockerfile.py asserts this list
+# stays in step with the packages that actually exist.
+FROM system AS interpreters
 
-# --- CHANGE 3: Update Cache Mounts ---
-# Update cache mounts to point to the new location or keep them in root (caches are fine in root if only used during build)
-# Note: We must ensure the permissions of /opt/pyenv allow reading by others
+COPY BO4MobBenchmark/.python-version        /opt/bencher/BO4MobBenchmark/.python-version
+COPY BencherServer/.python-version          /opt/bencher/BencherServer/.python-version
+COPY EboBenchmarks/.python-version          /opt/bencher/EboBenchmarks/.python-version
+COPY IOHBenchmarks/.python-version          /opt/bencher/IOHBenchmarks/.python-version
+COPY LassoBenchmarks/.python-version        /opt/bencher/LassoBenchmarks/.python-version
+COPY MaxSATBenchmarks/.python-version       /opt/bencher/MaxSATBenchmarks/.python-version
+COPY MujocoBenchmarks/.python-version       /opt/bencher/MujocoBenchmarks/.python-version
+COPY NoDependencyBenchmark/.python-version  /opt/bencher/NoDependencyBenchmark/.python-version
+COPY SVMBenchmarks/.python-version          /opt/bencher/SVMBenchmarks/.python-version
+
 RUN --mount=type=cache,target=/root/.pyenv/cache \
-    --mount=type=cache,target=/root/.cache \
-    for dir in /opt/bencher/*; do \
-        if [ -d "$dir" ] && [ -f "$dir/pyproject.toml" ]; then \
-            cd "$dir"; \
-            if [ -f ".python-version" ]; then \
-                PYTHON_VERSION=$(cat .python-version | tr -d '[:space:]'); \
-                echo "Found .python-version in $(basename $dir), requires Python $PYTHON_VERSION"; \
-                if ! pyenv versions --bare | grep -q "^${PYTHON_VERSION}$"; then \
-                    echo "Installing Python $PYTHON_VERSION..."; \
-                    pyenv install $PYTHON_VERSION; \
-                fi; \
-                echo "Installing dependencies for $(basename $dir) with Python $PYTHON_VERSION..."; \
-                PYENV_VERSION=$PYTHON_VERSION uv sync --frozen --compile-bytecode --no-dev; \
-            else \
-                echo "No .python-version found in $(basename $dir), using default system python (3.11)..."; \
-                uv sync --frozen --compile-bytecode --no-dev; \
-            fi; \
-            cd ..; \
+    sort -u /opt/bencher/*/.python-version | tr -d '[:blank:]' | while read -r version; do \
+        [ -n "$version" ] || continue; \
+        if ! pyenv versions --bare | grep -q "^${version}$"; then \
+            echo "Installing Python ${version}..."; \
+            pyenv install "$version"; \
         fi; \
+    done && \
+    chmod -R a+rX "$PYENV_ROOT"
+
+#########################  dependencies  #########################
+# Third-party dependencies only -- no project source, so editing a service does
+# not rebuild torch, mujoco-py, box2d, celer or GPy. Invalidated only by a
+# pyproject.toml or uv.lock change.
+FROM interpreters AS dependencies
+
+COPY BO4MobBenchmark/pyproject.toml BO4MobBenchmark/uv.lock              /opt/bencher/BO4MobBenchmark/
+COPY BencherServer/pyproject.toml BencherServer/uv.lock                  /opt/bencher/BencherServer/
+COPY EboBenchmarks/pyproject.toml EboBenchmarks/uv.lock                  /opt/bencher/EboBenchmarks/
+COPY IOHBenchmarks/pyproject.toml IOHBenchmarks/uv.lock                  /opt/bencher/IOHBenchmarks/
+COPY LassoBenchmarks/pyproject.toml LassoBenchmarks/uv.lock              /opt/bencher/LassoBenchmarks/
+COPY MaxSATBenchmarks/pyproject.toml MaxSATBenchmarks/uv.lock            /opt/bencher/MaxSATBenchmarks/
+COPY MujocoBenchmarks/pyproject.toml MujocoBenchmarks/uv.lock            /opt/bencher/MujocoBenchmarks/
+COPY NoDependencyBenchmark/pyproject.toml NoDependencyBenchmark/uv.lock  /opt/bencher/NoDependencyBenchmark/
+COPY SVMBenchmarks/pyproject.toml SVMBenchmarks/uv.lock                  /opt/bencher/SVMBenchmarks/
+
+RUN --mount=type=cache,target=/root/.cache \
+    for dir in /opt/bencher/*; do \
+        [ -f "$dir/pyproject.toml" ] || continue; \
+        cd "$dir"; \
+        version=$(tr -d '[:space:]' < .python-version); \
+        echo "Installing dependencies for $(basename $dir) with Python ${version}..."; \
+        PYENV_VERSION=$version uv sync --frozen --compile-bytecode --no-dev --no-install-project; \
+    done && \
+    chmod -R a+rX /opt/bencher
+
+##########################  datasets  ############################
+# Baked in so nothing is downloaded at runtime. The fetch logic lives in
+# docker/*.py rather than inline heredocs: a Dockerfile RUN supports only one
+# heredoc, and real files are far easier to read and change.
+FROM dependencies AS datasets
+
+COPY docker /opt/bencher-build
+
+# libsvm needs only LassoBenchmarks' dependencies, so it sits above any source.
+RUN --mount=type=cache,target=/root/.cache \
+    mkdir -p "$LIBSVMDATA_HOME" && \
+    /opt/bencher/LassoBenchmarks/.venv/bin/python /opt/bencher-build/prefetch_libsvm.py
+
+# The remaining three read URLs and paths from package code, so they need that
+# package's source -- but only these three trees, not the whole repo. Each writes
+# into a cache mount first and is then copied into the image, so even when this
+# layer is invalidated the bytes (several hundred MB) are not re-downloaded.
+COPY MaxSATBenchmarks/src       /opt/bencher/MaxSATBenchmarks/src
+COPY SVMBenchmarks/src          /opt/bencher/SVMBenchmarks/src
+COPY NoDependencyBenchmark/src  /opt/bencher/NoDependencyBenchmark/src
+
+RUN --mount=type=cache,target=/opt/dl-cache \
+    set -eu && \
+    PYTHONPATH=/opt/bencher/MaxSATBenchmarks/src \
+      /opt/bencher/MaxSATBenchmarks/.venv/bin/python \
+      /opt/bencher-build/prefetch_maxsat.py /opt/dl-cache/maxsat && \
+    SVM_DATA_DIR=/opt/dl-cache/svm PYTHONPATH=/opt/bencher/SVMBenchmarks/src \
+      /opt/bencher/SVMBenchmarks/.venv/bin/python \
+      /opt/bencher-build/prefetch_svm.py "/opt/bencher-cache/svm" && \
+    MOPTA_DATA_DIR=/opt/dl-cache/mopta PYTHONPATH=/opt/bencher/NoDependencyBenchmark/src \
+      /opt/bencher/NoDependencyBenchmark/.venv/bin/python \
+      /opt/bencher-build/prefetch_mopta.py "/opt/bencher/NoDependencyBenchmark/data" && \
+    chmod -R a+rX /opt/bencher-cache /opt/bencher/MaxSATBenchmarks /opt/bencher/NoDependencyBenchmark
+
+###########################  final  ##############################
+# Project source last: a change here re-runs only the project install, which is
+# a handful of seconds, plus the permission fixups.
+FROM datasets AS final
+
+COPY . /opt/bencher
+COPY entrypoint.py /entrypoint.py
+
+# Installs just the projects themselves into the virtualenvs built above.
+# umask 022 so the handful of files this writes are world-readable without
+# needing another recursive chmod.
+RUN --mount=type=cache,target=/root/.cache \
+    umask 022 && \
+    for dir in /opt/bencher/*; do \
+        [ -f "$dir/pyproject.toml" ] || continue; \
+        cd "$dir"; \
+        version=$(tr -d '[:space:]' < .python-version); \
+        PYENV_VERSION=$version uv sync --frozen --compile-bytecode --no-dev; \
     done
 
-# Pre-fetch MaxSAT datasets into the package data directory
-RUN cd /opt/bencher/MaxSATBenchmarks && \
-    uv run python - <<'PY'
-from maxsatbenchmarks.main import directory_name
-from maxsatbenchmarks.data_loading import download_maxsat60_data, download_maxsat125_data
+# Apptainer runs as a non-root user, so everything must be world-readable. The
+# expensive trees (pyenv, the virtualenvs, the datasets) are already chmod'ed in
+# the stages that create them, and those layers are cached; only the source
+# copied just above still needs it. Doing all of it here instead cost 462s on
+# every source change -- 96% of the rebuild.
+RUN chmod +x /entrypoint.py && \
+    find /opt/bencher -name .venv -prune -o -print0 | xargs -0 chmod a+rX
 
-download_maxsat60_data(directory_name)
-download_maxsat125_data(directory_name)
-PY
-
-# --- CHANGE 4: Permission Fix ---
-# Crucial for Apptainer: Ensure /opt/pyenv is readable by non-root users
-RUN chmod -R a+rX /opt/pyenv
-
-COPY entrypoint.py /entrypoint.py
-RUN chmod +x /entrypoint.py
-
-# ---
-# Stage 2: The Final Image
-FROM debian:bookworm-slim AS final
-
-# --- CHANGE 5: Environment variables in Final Stage ---
-ENV PYENV_ROOT="/opt/pyenv"
-# Removed /root/.local/bin from PATH as we moved uv to /usr/local/bin
-ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
-ENV LANG=C.UTF-8 \
-    MUJOCO_PY_MUJOCO_PATH=/opt/mujoco210 \
-    LD_LIBRARY_PATH="/opt/mujoco210/bin:/bin/usr/local/nvidia/lib64:/usr/lib/nvidia:${LD_LIBRARY_PATH-}" \
-    LIBSVMDATA_HOME=/opt/bencher-cache/libsvm \
-    MOPTA_DATA_DIR=/opt/bencher/NoDependencyBenchmark/data \
-    SVM_DATA_DIR=/opt/bencher-cache/svm \
-    SUMO_HOME=/usr/share/sumo
+# Runtime-only settings. Deliberately after every build step: setting
+# UV_CACHE_DIR earlier would point uv away from the cache mounts above.
 ENV UV_CACHE_DIR=/tmp/.uv-cache \
     UV_PYTHON_DOWNLOADS=never \
     PYTHONDONTWRITEBYTECODE=1
-
-# ... (Runtime dependency install remains the same) ...
-ARG PPA_DEPENDENCIES="software-properties-common python3-launchpadlib gnupg"
-ARG RUNTIME_DEPENDENCIES="git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
-    curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl \
-    libglew-dev patchelf python3-dev libglfw3 gcc libosmesa6-dev libgl1-mesa-glx sumo sumo-tools swig"
-
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends $PPA_DEPENDENCIES && \
-    add-apt-repository -y ppa:sumo/stable && \
-    apt-get update -y && \
-    apt-get install -y --no-install-recommends $RUNTIME_DEPENDENCIES && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /opt/mujoco210 /opt/mujoco210
-
-# --- CHANGE 6: Copy uv from /usr/local/bin ---
-COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
-
-# --- CHANGE 7: Copy pyenv to /opt/pyenv ---
-COPY --from=builder /opt/pyenv /opt/pyenv
-
-COPY --from=builder /opt/bencher /opt/bencher
-COPY --from=builder /entrypoint.py /entrypoint.py
-
-# Pre-fetch libsvm datasets into /tmp to avoid download at runtime using LassoBenchmarks env
-RUN mkdir -p "$LIBSVMDATA_HOME" && \
-    cd /opt/bencher/LassoBenchmarks && \
-    uv run python - <<'PY'
-from libsvmdata import fetch_libsvm
-for name in ["diabetes_scale", "breast-cancer_scale", "leukemia_test", "rcv1.binary", "dna"]:
-    fetch_libsvm(name)
-PY
-
-# Pre-fetch SVM slice localization dataset into the configured directory
-RUN mkdir -p "$SVM_DATA_DIR" && \
-    cd /opt/bencher/SVMBenchmarks && \
-    uv run python - <<'PY'
-from svmbenchmarks.main import download_slice_localization_data
-download_slice_localization_data()
-PY
-
-# Pre-fetch MOPTA executable into the configured directory
-RUN cd /opt/bencher/NoDependencyBenchmark && \
-    MOPTA_DATA_DIR=/opt/bencher/NoDependencyBenchmark/data uv run python - <<'PY'
-from nodependencybenchmark.main import download_mopta_executable
-from nodependencybenchmark.main import NoDependencyServiceServicer
-
-import os
-os.makedirs(os.environ["MOPTA_DATA_DIR"], exist_ok=True)
-servicer = NoDependencyServiceServicer()
-download_mopta_executable(servicer._mopta_exectutable_basename)
-PY
-
-# --- CHANGE 8: Final Permission sanity check ---
-# Just to be absolutely sure permissions didn't get messed up during COPY
-RUN chmod -R a+rX /opt/pyenv /opt/bencher /opt/bencher-cache
 
 WORKDIR /opt/bencher
 EXPOSE 50051

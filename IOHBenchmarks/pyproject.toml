@@ -11,9 +11,17 @@ dependencies = [
 ]
 packages = [{ include = "iohbenchmarks" }]
 
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+]
+
 [project.scripts]
 start-benchmark-service = "iohbenchmarks.main:serve"
 
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

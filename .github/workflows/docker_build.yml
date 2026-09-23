@@ -1,132 +1,140 @@
 name: Docker Build
 
+# The heavy tier. Fast contract tests gate every PR in pr-checks.yml; this one
+# builds the full image and exercises it, which takes ~30 minutes, so it runs on
+# a schedule, on demand, and on release tags rather than on every push.
+
 on:
-  push:
-    branches:
-      - main
   schedule:
     - cron: '0 0 * * 1-5'
-  workflow_run:
-    workflows: ["Update scaffold"]
-    types:
-      - completed
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 env:
-  TEST_TAG: ${{ secrets.DOCKERHUB_USERNAME }}/bencher:test
-  LATEST_TAG: ${{ secrets.DOCKERHUB_USERNAME }}/bencher:latest
+  TEST_TAG: bencher:ci
 
 jobs:
-  build-test-docker:
+  build-and-test:
+    # Docker and Apptainer share one job so the image is built once and both
+    # runtimes exercise the same bytes. They used to be separate jobs, and the
+    # Apptainer one rebuilt from a registry image rather than the code under
+    # test.
     runs-on: ubuntu-22.04
-
     steps:
       - run: df -h
-      - name: "node-cleanup"
+
+      - name: Free runner disk
+        # The image is ~2.6 GB and Apptainer needs room for a sandbox too.
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           sudo docker image prune --all --force
           sudo docker builder prune -a
       - run: df -h
+
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          path: bencher
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and export to Docker
+      - name: Build image
         uses: docker/build-push-action@v6
         with:
-          context: bencher
+          context: .
           load: true
           tags: ${{ env.TEST_TAG }}
           cache-from: type=gha
-          cache-to: type=gha
-          build-args: |
-            CACHEBUST=${{ github.sha }}
+          cache-to: type=gha,mode=max
+          # The old CACHEBUST build-arg was inert: the Dockerfile never declared
+          # `ARG CACHEBUST`, so it busted nothing and only emitted a warning.
 
-      - name: Run Docker container
-        run: |
-          cd bencher
-          docker run -d -p 50051:50051 ${{ env.TEST_TAG }}
-
-      - name: Checkout bencherclient code
-        uses: actions/checkout@v4
-        with:
-          repository: 'lpapenme/bencherclient'
-          ref: 'master'
-          path: bencherclient
-
-      - name: Checkout python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - name: Start the container
+        run: docker run -d --name bencher -p 50051:50051 ${{ env.TEST_TAG }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.9.2"
+          enable-cache: true
 
-      - name: Install dependencies
+      - name: Set up Python
+        run: uv python install 3.11.13
+
+      - name: Install the e2e client
+        # The root project: bencherscaffold + pytest, nothing else. The e2e
+        # assertions live in this repo now, so they version with the services
+        # they test rather than in a separately checked-out client repo.
+        run: uv sync --group dev
+
+      - name: Wait for the front door
         run: |
-          cd bencherclient
-          uv sync --all-groups
+          for _ in $(seq 1 60); do
+            if uv run python -c "
+          import grpc, sys
+          try:
+              grpc.channel_ready_future(grpc.insecure_channel('localhost:50051')).result(timeout=3)
+          except Exception:
+              sys.exit(1)"; then exit 0; fi
+            sleep 5
+          done
+          echo "front door never came up"; docker logs bencher | tail -50; exit 1
 
-      - name: Run bencherclient
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          command: |
-            cd bencherclient
-            # run the client, print /opt/bencher.err if it fails
-            uv run python3 run_all_benchmarks.py 
+      - name: Run e2e against the Docker container
+        run: uv run pytest tests/e2e -q --target localhost:50051
 
-      #- name: Build and push
-      #  uses: docker/build-push-action@v6
-      #  if: ${{ github.event_name != 'schedule' }}
-      #  with:
-      #    context: bencher
-      #    push: true
-      #    tags: ${{ env.LATEST_TAG }}
-      #    cache-from: type=gha
-      #    cache-to: type=gha
-      #    build-args: |
-      #      CACHEBUST=${{ github.sha }}
+      - name: Dump service logs on failure
+        if: failure()
+        run: |
+          docker exec bencher sh -c 'for f in /root/*_bencher.err; do
+            [ -s "$f" ] && { echo "=== $f"; tail -40 "$f"; }
+          done' || true
 
-  build-test-singularity:
-    runs-on: ubuntu-22.04
-    needs: build-test-docker
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-      - uses: eWaterCycle/setup-apptainer@v2
+      - name: Stop the Docker container
+        run: docker rm -f bencher
+
+      - name: Set up Apptainer
+        uses: eWaterCycle/setup-apptainer@v2
         with:
           apptainer-version: 1.4.0
-      - name: build singularity container
-        env:
-          SINGULARITY_DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          SINGULARITY_DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build the Apptainer image from the image just built
+        # container.sdef pins a published base image, which is right for users
+        # but wrong here: CI must test the build from this commit, not whatever
+        # the registry currently holds. Point a throwaway copy at the local
+        # daemon instead of editing the committed definition.
         run: |
-          apptainer build --sandbox bencher.sif container.sdef
-          if [ $? -ne 0 ]; then
-            echo "Singularity build failed."
-            exit 1
-          fi
-      - name: start singularity instance
+          sed "s|^From: .*|From: docker-daemon://${TEST_TAG}|" container.sdef > ci.sdef
+          echo "--- ci.sdef header ---"; head -4 ci.sdef
+          apptainer build --sandbox bencher.sif ci.sdef
+
+      - name: Start the Apptainer instance
         run: |
-          # start instance
-          # apptainer instance start bencher.sif bencher
-          mkdir output
-            apptainer instance start --bind $(pwd)/output:/opt/bencher/BO4MobBenchmark/src/bo4mobbenchmark/output bencher.sif bencherclient
-      - name: run bencherclient
+          mkdir -p output
+          apptainer instance start \
+            --bind "$(pwd)/output:/opt/bencher/BO4MobBenchmark/src/bo4mobbenchmark/output" \
+            bencher.sif bencher
+
+      - name: Wait for the Apptainer front door
         run: |
-          apptainer run instance://bencher python /opt/bencherclient/run_all_benchmarks.py
+          for _ in $(seq 1 60); do
+            if uv run python -c "
+          import grpc, sys
+          try:
+              grpc.channel_ready_future(grpc.insecure_channel('localhost:50051')).result(timeout=3)
+          except Exception:
+              sys.exit(1)"; then exit 0; fi
+            sleep 5
+          done
+          echo "Apptainer front door never came up"; exit 1
+
+      - name: Run e2e against the Apptainer instance
+        # Previously this ran `apptainer run instance://bencher`, but the
+        # instance had been started as `bencherclient` -- the names did not
+        # match, so this step could never have worked.
+        run: uv run pytest tests/e2e -q --target localhost:50051
+
+      - name: Stop the Apptainer instance
+        if: always()
+        run: apptainer instance stop bencher || true
