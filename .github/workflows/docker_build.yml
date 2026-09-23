@@ -124,7 +124,12 @@ jobs:
         # the registry currently holds. Point a throwaway copy at the local
         # daemon instead of editing the committed definition.
         run: |
-          sed "s|^From: .*|From: docker-daemon://${TEST_TAG}|" container.sdef > ci.sdef
+          # Both header lines must change. In a definition file the local daemon
+          # is a *bootstrap agent* (`Bootstrap: docker-daemon`), not a URI scheme
+          # on From: -- writing `From: docker-daemon://...` makes Apptainer try to
+          # resolve a registry literally named "docker-daemon" and fail DNS.
+          sed -e "s|^Bootstrap: .*|Bootstrap: docker-daemon|" \
+              -e "s|^From: .*|From: ${TEST_TAG}|" container.sdef > ci.sdef
           echo "--- ci.sdef header ---"; head -4 ci.sdef
           # A real .sif, deliberately NOT --sandbox. A sandbox is a writable
           # directory owned by the invoking user, so it reproduces none of the
