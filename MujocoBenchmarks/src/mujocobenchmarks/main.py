@@ -89,7 +89,8 @@ class MujocoServiceServicer(DualStackGRCPService):
             context
     ) -> EvaluationResult:
         x = np.array([v.value for v in request.point.values])
-        value = self.evaluate(request.benchmark.name, x)
+        seed = request.random_seed if request.HasField('random_seed') else None
+        value = self.evaluate(request.benchmark.name, x, seed=seed)
         return EvaluationResult(
             objectives=[ObjectiveValue(name="f0", value=value)],
         )

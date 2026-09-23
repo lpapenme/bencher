@@ -89,15 +89,22 @@ class MujucoPolicyFunc:
     def is_minimizing(self) -> bool:
         return False
 
-    def __call__(self, x: np.ndarray) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+    def __call__(self, x: np.ndarray, seed: Optional[int] = None) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         fx = np.zeros(len(x))
+        if seed is None:
+            rollout_seeds = [None] * self._num_rollouts
+        else:
+            rollout_seeds = [
+                int(child.generate_state(1)[0])
+                for child in np.random.SeedSequence(seed).spawn(self._num_rollouts)
+            ]
         for i, actions in enumerate(x):
             m = actions.reshape(self._policy.shape)
             rewards = []
             observations = []
             actions = []
-            for _ in range(self._num_rollouts):
-                obs = self._env.reset()
+            for rollout_seed in rollout_seeds:
+                obs = self._env.reset(seed=rollout_seed)
                 done = False
                 total_reward = 0.
                 steps = 0
