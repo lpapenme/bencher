@@ -182,6 +182,6 @@ def test_apptainer_image_is_not_built_as_a_sandbox():
     read-only-filesystem failures that justify testing Apptainer at all -- and
     the README tells users to build a .sif."""
     workflow = (REPO_ROOT / ".github" / "workflows" / "docker_build.yml").read_text()
-    assert "apptainer build --sandbox" not in workflow, (
+    assert "--sandbox" not in workflow, (
         "the Apptainer tier must build a real .sif; a sandbox is writable and "
         "would hide every read-only failure this tier exists to catch")

@@ -130,23 +130,33 @@ jobs:
       - name: Build the Apptainer image from the image just built
         # container.sdef pins a published base image, which is right for users
         # but wrong here: CI must test the build from this commit, not whatever
-        # the registry currently holds. Point a throwaway copy at the local
-        # daemon instead of editing the committed definition.
+        # the registry currently holds. Point a throwaway copy at the image we
+        # just built instead of editing the committed definition.
+        #
+        # Via a docker-archive tarball rather than `Bootstrap: docker-daemon`.
+        # The daemon route streams the image out through the Docker API and
+        # repeatedly killed the runner ~75s into "Fetching OCI image..." with no
+        # Apptainer-level error. `docker save` is a plain file read, which is
+        # predictable, resumable and easy to inspect when it goes wrong.
         run: |
-          # Both header lines must change. In a definition file the local daemon
-          # is a *bootstrap agent* (`Bootstrap: docker-daemon`), not a URI scheme
-          # on From: -- writing `From: docker-daemon://...` makes Apptainer try to
-          # resolve a registry literally named "docker-daemon" and fail DNS.
-          sed -e "s|^Bootstrap: .*|Bootstrap: docker-daemon|" \
-              -e "s|^From: .*|From: ${TEST_TAG}|" container.sdef > ci.sdef
+          set -euo pipefail
+          echo "--- resources before ---"; free -h; df -h /
+          docker save "${TEST_TAG}" -o bencher-image.tar
+          ls -lh bencher-image.tar
+
+          sed -e "s|^Bootstrap: .*|Bootstrap: docker-archive|" \
+              -e "s|^From: .*|From: bencher-image.tar|" container.sdef > ci.sdef
           echo "--- ci.sdef header ---"; head -4 ci.sdef
+
           # A real .sif, deliberately NOT --sandbox. A sandbox is a writable
           # directory owned by the invoking user, so it reproduces none of the
           # read-only-filesystem failures that are the whole reason to test
           # Apptainer separately -- and the README tells users to build a .sif.
-          # Testing a sandbox would mean this tier verifies a filesystem model
-          # nobody runs.
-          apptainer build bencher.sif ci.sdef
+          APPTAINER_TMPDIR="$RUNNER_TEMP/apptainer" \
+            apptainer build bencher.sif ci.sdef
+          ls -lh bencher.sif
+          rm -f bencher-image.tar
+          echo "--- resources after ---"; free -h; df -h /
 
       - name: Start the Apptainer instance
         run: |
