@@ -423,24 +423,28 @@ def test_setup_uv_version_matches_the_image(workflow):
     assert _setup_uv_versions(workflow), "workflow does not install uv"
 
 
-@pytest.mark.parametrize("workflow", [PR_WORKFLOW, DOCKER_BUILD_WORKFLOW])
-def test_root_ci_python_install_reads_the_root_pin(workflow):
-    """Tier 0 and e2e must follow .python-version rather than a stale patch."""
+def test_e2e_python_install_reads_the_root_pin():
+    """The e2e client must follow .python-version rather than a stale patch."""
     assert re.search(
         r'uv\s+python\s+install\s+"\$\(cat\s+\.python-version\)"',
+        DOCKER_BUILD_WORKFLOW,
+    )
+
+
+@pytest.mark.parametrize("workflow", [PR_WORKFLOW, SCAFFOLD_WORKFLOW],
+                         ids=["pr-checks", "update-scaffold"])
+def test_lock_checking_workflows_install_every_pin(workflow):
+    """`uv lock --check` needs each package's own pinned interpreter.
+
+    Tier 0 and the scaffold bump both lock every package with downloads off,
+    so installing only the root pin fails the 3.8 and 3.10 packages. The pins
+    are read with awk, not cat: a pin file lacking a trailing newline would
+    fuse with the next one into a bogus version like `3.11.133.8.20`.
+    """
+    assert re.search(
+        r"uv\s+python\s+install\s+\$\(awk\s+'NF'\s+\.python-version"
+        r"\s+\*/\.python-version\s*\|\s*sort -u\)",
         workflow,
-    )
-
-
-def test_scaffold_workflow_collects_the_root_and_every_package_pin():
-    """Scaffold locks need every interpreter its root/package projects require."""
-    assert re.search(
-        r"cat\s+\.python-version\s+\*/\.python-version\s*\|\s*sort -u",
-        SCAFFOLD_WORKFLOW,
-    )
-    assert re.search(
-        r'uv\s+python\s+install\s+"\$version"',
-        SCAFFOLD_WORKFLOW,
     )
 
 

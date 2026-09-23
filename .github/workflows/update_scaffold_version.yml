@@ -37,10 +37,9 @@ jobs:
 
       - name: Install the interpreters each package pins
         # Include the root contract project as well as every package project.
-        run: |
-          for version in $(cat .python-version */.python-version | sort -u); do
-            uv python install "$version"
-          done
+        # awk, not cat: a pin file without a trailing newline would fuse
+        # with the next one.
+        run: uv python install $(awk 'NF' .python-version */.python-version | sort -u)
 
       - name: Resolve the target version
         id: resolve

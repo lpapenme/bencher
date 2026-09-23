@@ -40,7 +40,12 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
           cache-suffix: root
-      - run: uv python install "$(cat .python-version)"
+      - name: Install the interpreters each package pins
+        # `uv lock --check` in test_packaging resolves against each package's
+        # own .python-version, and downloads are off below, so every pin must
+        # be installed up front -- not just the root one. awk, not cat: a pin
+        # file without a trailing newline would fuse with the next one.
+        run: uv python install $(awk 'NF' .python-version */.python-version | sort -u)
       - name: Install contract-test dependencies
         # Root project only: pytest + bencherscaffold. No benchmark package is
         # installed here, which is the whole point of this tier.
