@@ -1,5 +1,12 @@
-<!-- Builds currently failing due to the container size exceeding the size of gh runners -->
-<!-- # [![Docker Build](https://github.com/LeoIV/bencher/actions/workflows/docker_build.yml/badge.svg)](https://github.com/LeoIV/bencher/actions/workflows/docker_build.yml) -->
+# Bencher
+
+[![PR checks](https://github.com/lpapenme/bencher/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/lpapenme/bencher/actions/workflows/pr-checks.yml)
+[![Docker Build](https://github.com/lpapenme/bencher/actions/workflows/docker_build.yml/badge.svg?branch=main)](https://github.com/lpapenme/bencher/actions/workflows/docker_build.yml)
+[![Docker Hub](https://img.shields.io/docker/image-size/gaunab/bencher/latest?logo=docker&label=image)](https://hub.docker.com/r/gaunab/bencher)
+[![Python](https://img.shields.io/badge/python-3.8%20%7C%203.10%20%7C%203.11-blue?logo=python&logoColor=white)](#available-benchmarks)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2505.21321-b31b1b)](https://arxiv.org/abs/2505.21321)
+
 
 Bencher is a lightweight benchmarking framework for black-box optimization designed to make *benchmark execution* simple and reproducible, without forcing benchmark dependencies into your optimizer’s environment. It follows a client–server architecture: benchmarks run in an isolated, containerized server, while optimizers communicate with the server through a stable gRPC interface via a small Python client (`bencherscaffold`).
 
