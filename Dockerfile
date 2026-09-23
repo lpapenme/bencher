@@ -81,6 +81,16 @@ RUN --mount=type=cache,target=/opt/pyenv/cache \
             pyenv install "$version"; \
         fi; \
     done && \
+    # Pin the default interpreter in the image itself. The entrypoint runs
+    # `python3.11`, which is a pyenv *shim*: it resolves via PYENV_VERSION, then
+    # a .python-version walking up from the CWD, then $PYENV_ROOT/version. Docker
+    # only works by accident of WORKDIR /opt/bencher containing a
+    # .python-version; Apptainer ignores Docker's WORKDIR and starts in the host
+    # CWD, so without this the shim cannot resolve and the instance fails to
+    # start. Setting it here fixes every derived image, including the sdef
+    # template users are told to copy in the README.
+    pyenv global 3.11.13 && \
+    pyenv rehash && \
     chmod -R a+rX "$PYENV_ROOT"
 
 #########################  dependencies  #########################
@@ -107,6 +117,12 @@ RUN --mount=type=cache,target=/root/.cache \
         echo "Installing dependencies for $(basename $dir) with Python ${version}..."; \
         PYENV_VERSION=$version uv sync --frozen --compile-bytecode --no-dev --no-install-project; \
     done && \
+    # Force mujoco-py to compile its cymj extension now. It builds the .so into
+    # its own site-packages on first import, which succeeds in Docker's writable
+    # layer but fails with EROFS on a read-only Apptainer .sif -- so without this
+    # every MuJoCo benchmark works under Docker and dies under Apptainer. Doing
+    # it here also keeps the cost off the first request.
+    /opt/bencher/MujocoBenchmarks/.venv/bin/python -c "import mujoco_py" && \
     chmod -R a+rX /opt/bencher
 
 ##########################  datasets  ############################

@@ -119,3 +119,69 @@ def test_container_lane_tests_only_reach_paths_the_image_has(pkg):
     assert not offenders, (
         "container-tier tests reach a repo path the image does not mount:\n"
         + "\n".join(offenders))
+
+
+SDEF = (REPO_ROOT / "container.sdef").read_text()
+
+
+def _entrypoint_command() -> str:
+    """The command the image actually starts, from the Dockerfile ENTRYPOINT."""
+    match = re.search(r'^ENTRYPOINT\s+\[(.*?)\]', DOCKERFILE, re.M)
+    assert match, "Dockerfile has no ENTRYPOINT"
+    return " ".join(part.strip().strip('"') for part in match.group(1).split(","))
+
+
+def test_sdef_startscript_matches_the_image_entrypoint():
+    """Apptainer ignores Docker's ENTRYPOINT, so the sdef restates it by hand.
+
+    If the two drift, the Docker image works and the Apptainer instance does not
+    start -- a failure only the Apptainer tier would ever see.
+    """
+    command = _entrypoint_command()
+    # Anchor to the section header at line start: the word also appears in the
+    # file's prose comments, and matching those found an empty body.
+    match = re.search(r'^%startscript\n(.*?)(?=^%|\Z)', SDEF, re.M | re.S)
+    assert match, "container.sdef has no %startscript section"
+    startscript = match.group(1)
+    assert command in startscript, (
+        f"container.sdef %startscript does not run the image's ENTRYPOINT "
+        f"({command!r}); the instance would fail to start")
+
+
+def test_readme_apptainer_template_starts_the_real_entrypoint():
+    """The README's sdef template is a contract with users building their own.
+
+    It documented `/docker-entrypoint.sh`, a file that does not exist in the
+    image, so anyone copying it got a container that would not start.
+    """
+    readme = (REPO_ROOT / "README.md").read_text()
+    templates = re.findall(r'%startscript\s*\n\s*(.+)', readme)
+    assert templates, "no %startscript in the README's Apptainer template"
+
+    command = _entrypoint_command()
+    wrong = [t for t in templates if command not in t]
+    assert not wrong, (
+        f"README's Apptainer template starts {wrong}, but the image's entrypoint "
+        f"is {command!r}; a user copying it would get a container that never starts")
+
+
+def test_the_image_pins_a_default_interpreter():
+    """`python3.11` is a pyenv shim and resolves via $PYENV_ROOT/version.
+
+    Docker only works by accident of WORKDIR containing a .python-version;
+    Apptainer starts in the host CWD, so without `pyenv global` the shim cannot
+    resolve and the instance dies at startup.
+    """
+    assert re.search(r'^\s*pyenv global \S+', DOCKERFILE, re.M), (
+        "Dockerfile must run `pyenv global` so the entrypoint's python3.11 shim "
+        "resolves outside a directory containing .python-version")
+
+
+def test_apptainer_image_is_not_built_as_a_sandbox():
+    """A --sandbox is a writable directory, so it reproduces none of the
+    read-only-filesystem failures that justify testing Apptainer at all -- and
+    the README tells users to build a .sif."""
+    workflow = (REPO_ROOT / ".github" / "workflows" / "docker_build.yml").read_text()
+    assert "apptainer build --sandbox" not in workflow, (
+        "the Apptainer tier must build a real .sif; a sandbox is writable and "
+        "would hide every read-only failure this tier exists to catch")

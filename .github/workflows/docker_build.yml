@@ -15,6 +15,17 @@ on:
       - main
     tags:
       - 'v*'
+  pull_request:
+    # Only for changes that can plausibly break container packaging. Apptainer
+    # breakage comes from the image, the definition or the entrypoint -- not from
+    # benchmark code -- so everything else stays on the nightly signal.
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'container.sdef'
+      - 'entrypoint.py'
+      - 'docker/**'
+      - '.github/workflows/docker_build.yml'
 
 env:
   TEST_TAG: bencher:ci
@@ -115,13 +126,25 @@ jobs:
         run: |
           sed "s|^From: .*|From: docker-daemon://${TEST_TAG}|" container.sdef > ci.sdef
           echo "--- ci.sdef header ---"; head -4 ci.sdef
-          apptainer build --sandbox bencher.sif ci.sdef
+          # A real .sif, deliberately NOT --sandbox. A sandbox is a writable
+          # directory owned by the invoking user, so it reproduces none of the
+          # read-only-filesystem failures that are the whole reason to test
+          # Apptainer separately -- and the README tells users to build a .sif.
+          # Testing a sandbox would mean this tier verifies a filesystem model
+          # nobody runs.
+          apptainer build bencher.sif ci.sdef
 
       - name: Start the Apptainer instance
         run: |
+          # BO4Mob writes results to a *relative* `output/` path, and
+          # entrypoint.py runs each service with cwd=/opt/bencher/<Package>, so
+          # the directory it actually uses is /opt/bencher/BO4MobBenchmark/output.
+          # The previous bind pointed at .../src/bo4mobbenchmark/output, a path
+          # the code never touches -- harmless under a writable sandbox, fatal on
+          # a real read-only .sif.
           mkdir -p output
           apptainer instance start \
-            --bind "$(pwd)/output:/opt/bencher/BO4MobBenchmark/src/bo4mobbenchmark/output" \
+            --bind "$(pwd)/output:/opt/bencher/BO4MobBenchmark/output" \
             bencher.sif bencher
 
       - name: Wait for the Apptainer front door
@@ -137,12 +160,82 @@ jobs:
           done
           echo "Apptainer front door never came up"; exit 1
 
+      - name: Apptainer runs rootless
+        # Docker runs as uid 0 with a writable overlay; Apptainer runs as the
+        # invoking user against a read-only image. Anything the build left
+        # unreadable fails here and nowhere else, which is what the Dockerfile's
+        # per-stage `chmod -R a+rX` exists for.
+        run: |
+          uid=$(apptainer exec bencher.sif id -u)
+          echo "uid inside the container: $uid"
+          [ "$uid" != "0" ] || { echo "::error::expected a non-root uid"; exit 1; }
+
+      - name: The image root really is read-only
+        # Guards the premise of every check below. If this ever passes, the tier
+        # has silently gone back to testing a writable sandbox and none of the
+        # read-only failure modes are being exercised.
+        run: |
+          if apptainer exec bencher.sif sh -c 'touch /opt/bencher/.writetest' 2>/dev/null; then
+            echo "::error::/opt/bencher is writable -- is this a --sandbox build?"
+            exit 1
+          fi
+          echo "confirmed read-only"
+
+      - name: Service logs land in \$HOME, not the image
+        # entrypoint.py writes per-service logs to $HOME, which under Apptainer is
+        # the *host* user's home rather than /root in the image.
+        run: |
+          ls -la "$HOME"/*_bencher.out >/dev/null || {
+            echo "::error::no per-service logs in \$HOME"; exit 1; }
+          echo "found $(ls "$HOME"/*_bencher.out | wc -l) service logs in \$HOME"
+
       - name: Run e2e against the Apptainer instance
         # Previously this ran `apptainer run instance://bencher`, but the
         # instance had been started as `bencherclient` -- the names did not
         # match, so this step could never have worked.
         run: uv run pytest tests/e2e -q --target localhost:50051
 
-      - name: Stop the Apptainer instance
+      - name: BO4Mob wrote into the bound directory
+        # The one place a service writes inside the image tree. If the bind is
+        # wrong the e2e above already failed; this says so directly.
+        run: |
+          find output -maxdepth 4 | head -20
+          [ -n "$(ls -A output 2>/dev/null)" ] || \
+            echo "::warning::bound output/ is empty -- did a BO4Mob benchmark run?"
+
+      - name: APPTAINERENV_ port overrides work
+        # Documented in README.md as the way to move ports on HPC, and untested
+        # until now. Uses a second instance on a different port.
+        run: |
+          apptainer instance stop bencher || true
+          APPTAINERENV_BENCHER_SERVER_PORT=60051 \
+            apptainer instance start bencher.sif bencher-alt
+          for _ in $(seq 1 60); do
+            if uv run python -c "
+          import grpc, sys
+          try:
+              grpc.channel_ready_future(grpc.insecure_channel('localhost:60051')).result(timeout=3)
+          except Exception:
+              sys.exit(1)"; then
+              echo "front door answered on the overridden port 60051"; exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::BENCHER_SERVER_PORT override did not take effect"
+          tail -40 "$HOME"/BencherServer_bencher.err 2>/dev/null || true
+          exit 1
+
+      - name: Dump Apptainer service logs on failure
+        if: failure()
+        # Without this an Apptainer failure produces no diagnostics at all: the
+        # logs are in the runner's $HOME, not in any container.
+        run: |
+          for f in "$HOME"/*_bencher.err; do
+            [ -s "$f" ] && { echo "=== $f"; tail -40 "$f"; }
+          done || true
+
+      - name: Stop the Apptainer instances
         if: always()
-        run: apptainer instance stop bencher || true
+        run: |
+          apptainer instance stop bencher || true
+          apptainer instance stop bencher-alt || true

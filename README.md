@@ -156,7 +156,7 @@ Stage: build
     pip install your-dependencies
 
 %startscript
-    bash -c "/docker-entrypoint.sh"
+    bash -c "python3.11 /entrypoint.py"
 
 %runscript
     bash -c "your-command-to-run-your-app"
