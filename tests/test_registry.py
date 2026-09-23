@@ -12,6 +12,7 @@ import re
 
 import pytest
 
+from benchmarks import STOCHASTIC
 from conftest import (REPO_ROOT, declared_specs, dispatch_names, registry_by_port, rel)
 
 # Ports the front door knows how to override via env vars
@@ -200,3 +201,33 @@ def test_declared_dimensions_and_type_match_the_registry(port, registry):
                     f"{name}: service declares {field}={fields[field]!r}, "
                     f"registry says {entry[field]!r}")
     assert not mismatches, "service/registry drift:\n" + "\n".join(mismatches)
+
+
+CHECKED = "&#x2611"   # README's "noisy" tick
+UNCHECKED = "&#x2612"
+
+
+def test_readme_noisy_column_matches_the_declared_stochastic_set():
+    """README's Noisy column is what users rely on when reporting results.
+
+    It is maintained by hand and had drifted: `pestcontrol` and `rover` were
+    marked clean despite returning a different value on every call. The test
+    suite's STOCHASTIC set decides which benchmarks may carry a golden, so the
+    two must agree.
+    """
+    readme = (REPO_ROOT / "README.md").read_text()
+    rows = re.findall(
+        r"^\|\s*([A-Za-z0-9_.*-]+)\s*\|\s*(?:\d+|any)\s*\|[^|]*\|[^|]*\|\s*(&#x261[12]);\s*\|",
+        readme, re.MULTILINE)
+    assert rows, "no parseable Noisy column in README.md"
+
+    marked_noisy = {name for name, mark in rows if mark == CHECKED}
+    listed = {name for name, _ in rows}
+
+    missing = sorted((STOCHASTIC & listed) - marked_noisy)
+    spurious = sorted(marked_noisy - STOCHASTIC)
+    assert not missing, (
+        f"README marks these clean but the tests treat them as stochastic: {missing}")
+    assert not spurious, (
+        f"README marks these noisy but the tests expect them deterministic "
+        f"(so they may carry a golden): {spurious}")

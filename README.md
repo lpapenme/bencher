@@ -256,6 +256,45 @@ The urban mobility benchmarks (`1ramp_*`, `2corridor_*`, etc.) follow a template
 
 For example, a valid benchmark name is `1ramp_221008_08-09_count`.
 
+### Reproducibility
+
+Bencher pins benchmark *code and data* in the container image, so every user
+evaluates the same function. Two caveats are worth knowing before you report
+numbers.
+
+**Stochastic benchmarks vary between identical calls.** The `Noisy` column below
+marks them. `BenchmarkRequest` carries an optional `random_seed` (bencherscaffold
+0.6.4 and later) which makes a run repeatable:
+
+```python
+client.evaluate_point(benchmark_name='mujoco-swimmer', point=point, random_seed=7)
+```
+
+Today **only the MuJoCo family and `lunarlander` honour it.** `pestcontrol`,
+`rover` and `robotpushing` are still stochastic with no way to seed them through
+the API, so repeated calls will differ. Seeding those is open work.
+
+**Seeded rollouts are reproducible on one machine, not across architectures.**
+The physics simulations amplify floating-point differences, so the same seed on
+a different CPU gives a different answer. Measured between macOS/arm64 and the
+linux/amd64 container at seed 7:
+
+| benchmark | arm64 | linux/amd64 |
+|---|---|---|
+| `lunarlander` | 87.79251775658189 | 87.79232914609621 |
+| `mujoco-hopper` | -145.43122334242307 | -146.28735420150608 |
+| `mujoco-walker` | 4.309704043416025 | **-1.7118133581203339** |
+
+`mujoco-walker` changes sign. This is inherent to chaotic dynamics in floating
+point, not something Bencher can pin down. In practice it rarely bites, because
+the supported way to run Bencher is the published `linux/amd64` image — but do
+not compare rollout numbers gathered on different hardware, and say which
+architecture you used when publishing them.
+
+The deterministic benchmarks have no such caveat: `bbob-*`, `pbo-*`, `graph-*`,
+`maxsat*`, `lasso-*`, `svm` and `mopta08` reproduce bit-for-bit across
+architectures, and the test suite pins 64 of them to recorded values.
+
 The following benchmarks are available:
 
 | Benchmark Name             | # Dimensions | Type        | Source(s)      | Noisy    |
@@ -274,7 +313,7 @@ The following benchmarks are available:
 | maxsat125                  | 125          | binary      | [^7]           | &#x2612; |
 | robotpushing               | 14           | continuous  | [^3]           | &#x2611; |
 | lunarlander                | 12           | continuous  | [^3]           | &#x2611; |
-| rover                      | 60           | continuous  | [^3]           | &#x2612; |
+| rover                      | 60           | continuous  | [^3]           | &#x2611; |
 | mujoco-ant                 | 888          | continuous  | [^9],[^5]      | &#x2611; |
 | mujoco-hopper              | 33           | continuous  | [^9],[^5]      | &#x2611; |
 | mujoco-walker              | 102          | continuous  | [^9],[^5]      | &#x2611; |
@@ -288,7 +327,7 @@ The following benchmarks are available:
 | 3junction_*                | 44           | integer     | [^14]          | &#x2612; |
 | 4smallRegion_*             | 151          | integer     | [^14]          | &#x2612; |
 | 5fullRegion_*              | 10100        | integer     | [^14]          | &#x2612; |
-| pestcontrol                | 25           | categorical | [^10],[^13]    | &#x2612; |
+| pestcontrol                | 25           | categorical | [^10],[^13]    | &#x2611; |
 | bbob-sphere                | any          | continuous  | [^11],[^12]    | &#x2612; |
 | bbob-ellipsoid             | any          | continuous  | [^11],[^12]    | &#x2612; |
 | bbob-rastrigin             | any          | continuous  | [^11],[^12]    | &#x2612; |
