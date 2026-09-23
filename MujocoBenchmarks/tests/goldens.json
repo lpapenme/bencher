@@ -5,5 +5,12 @@
     "mujoco-hopper": -145.43122334242307,
     "mujoco-swimmer": -5.9325575192963615,
     "mujoco-walker": 4.309704043416025
+  },
+  "linux-x86_64": {
+    "lunarlander": 87.79232914609621,
+    "mujoco-halfcheetah": -0.18298116106765652,
+    "mujoco-hopper": -146.28735420150608,
+    "mujoco-swimmer": -5.805574154153944,
+    "mujoco-walker": -1.7118133581203339
   }
 }
