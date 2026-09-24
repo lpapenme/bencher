@@ -1,0 +1,270 @@
+name: PR checks
+
+# Fast guards that gate every change. Tier 0 parses source and config against the
+# installed bencherscaffold and needs no benchmark dependencies at all; Tier 1/2
+# run each package's own suite in its own virtualenv. Neither builds the image.
+#
+# The container job does build it, so that the three packages which cannot run on
+# a bare runner (MuJoCo binaries, SUMO) still get their tests executed. It is
+# deliberately NOT part of the required check -- see `all-green`.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    # Keeps the per-leg caches warm; they evict after 7 idle days.
+    - cron: '0 3 * * 1'
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      record-goldens:
+        description: "Record goldens on this runner and upload them as an artifact"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  contract:
+    name: Tier 0 · contract
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.2"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+          cache-suffix: root
+      - run: uv python install 3.11.13
+      - name: Install contract-test dependencies
+        # Root project only: pytest + bencherscaffold. No benchmark package is
+        # installed here, which is the whole point of this tier.
+        run: uv sync --group dev
+      - run: uv run pytest tests -q
+
+  discover:
+    name: Discover test matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      runner: ${{ steps.scan.outputs.runner }}
+      container: ${{ steps.scan.outputs.container }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: scan
+        run: python3 .github/scripts/discover_test_packages.py >> "$GITHUB_OUTPUT"
+
+  package-tests:
+    name: Tier 1/2 · ${{ matrix.pkg.package }}
+    needs: discover
+    runs-on: ubuntu-24.04
+    strategy:
+      # Independent packages: one failure must not cancel the others, and
+      # cancelling also aborts in-flight cache saves, making the next run cold.
+      fail-fast: false
+      matrix:
+        pkg: ${{ fromJson(needs.discover.outputs.runner) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.2"
+          enable-cache: true
+          # Scope the cache to THIS package's lock. The action's default glob is
+          # `**/uv.lock`, which would give all nine packages one shared key --
+          # bumping any lock would cold-bust every leg.
+          cache-dependency-glob: ${{ matrix.pkg.package }}/uv.lock
+          cache-suffix: ${{ matrix.pkg.package }}
+          # Keeps wheels built from source (mujoco-py, box2d-py, lassobench,
+          # sparse-ho, bo4mob) and drops re-downloadable ones.
+          prune-cache: true
+
+      - name: Install Python ${{ matrix.pkg.python }}
+        run: uv python install ${{ matrix.pkg.python }}
+
+      - name: Cache MaxSAT corpora
+        if: matrix.pkg.package == 'MaxSATBenchmarks'
+        uses: actions/cache@v4
+        with:
+          path: MaxSATBenchmarks/src/data/maxsat
+          # Keyed on the file holding the download URLs, so the cache
+          # invalidates exactly when the corpus identity changes.
+          key: maxsat-corpora-${{ hashFiles('MaxSATBenchmarks/src/maxsatbenchmarks/data_loading.py') }}
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.pkg.package }}
+        run: uv sync --locked --group dev
+
+      - name: Run tests
+        working-directory: ${{ matrix.pkg.package }}
+        # --locked so a leg cannot silently re-resolve and paper over the
+        # pyproject/lock divergence Tier 0 exists to catch. Dataset-dependent
+        # cases are deselected: the datasets live in the image, not here.
+        run: uv run --locked --group dev pytest tests -q -rf -m "not dataset" --junitxml=junit.xml
+
+      - name: How to reproduce
+        if: failure()
+        run: |
+          echo "::error title=${{ matrix.pkg.package }}::reproduce with: cd ${{ matrix.pkg.package }} && uv run --locked --group dev pytest tests -q"
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: junit-${{ matrix.pkg.package }}
+          path: ${{ matrix.pkg.package }}/junit.xml
+
+  container-tests:
+    name: Tier 1/2 · container packages
+    needs: discover
+    runs-on: ubuntu-24.04
+    # Informational on PRs: building the image means restoring a ~3 GB layer
+    # cache, so this takes minutes where the other legs take seconds. The
+    # nightly docker_build.yml is the enforcing run.
+    continue-on-error: true
+    steps:
+      - run: df -h
+      - name: Free runner disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: bencher:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run each container-tier package's tests
+        # Tests are mounted read-only rather than baked in: .dockerignore keeps
+        # tests/ out of the image so editing a test cannot invalidate the final
+        # layer. Read-only also makes --update-goldens impossible in CI.
+        #
+        # The repo-root tests/ is mounted too, not just the package's own: the
+        # package conftests import the shared Tier 2 harness from
+        # <repo>/tests/grpc_harness.py, which resolves to /opt/bencher/tests
+        # inside the image -- a path .dockerignore deliberately keeps empty.
+        run: |
+          set -euo pipefail
+          failed=0
+          for package in $(echo '${{ needs.discover.outputs.container }}' | jq -r '.[].package'); do
+            echo "::group::$package"
+            docker run --rm \
+              -v "$PWD/tests:/opt/bencher/tests:ro" \
+              -v "$PWD/$package/tests:/opt/bencher/$package/tests:ro" \
+              -w "/opt/bencher/$package" --entrypoint sh bencher:ci -c "
+                /usr/local/bin/uv pip install --quiet \
+                  --python /opt/bencher/$package/.venv/bin/python pytest
+                /opt/bencher/$package/.venv/bin/python -m pytest tests -q -rf \
+                  -p no:cacheprovider -m 'not dataset'" || failed=1
+            echo "::endgroup::"
+          done
+          exit $failed
+
+  all-green:
+    # The required check. The matrix is dynamic, so gating directly on it would
+    # leave a PR pending forever when a leg does not materialise. Deliberately
+    # excludes container-tests, which is informational on PRs.
+    name: All checks green
+    if: always()
+    needs: [contract, discover, package-tests]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fail if any dependency failed
+        run: |
+          echo "contract=${{ needs.contract.result }}"
+          echo "discover=${{ needs.discover.result }}"
+          echo "package-tests=${{ needs.package-tests.result }}"
+          [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "false" ]
+
+  record-goldens:
+    # Captures goldens on a real linux/amd64 runner, which is the only way to get
+    # values for an architecture you do not have. Do NOT record them by running
+    # the container under emulation on an arm64 machine: the floating-point
+    # results may differ from real x86 hardware, and a wrong golden is worse than
+    # none.
+    #
+    # Nothing is committed. The recorded files are uploaded for a human to review
+    # and commit deliberately -- CI should not be writing its own test
+    # expectations. The normal container leg keeps its read-only mounts.
+    name: Record goldens (manual)
+    if: github.event_name == 'workflow_dispatch' && inputs.record-goldens
+    needs: discover
+    runs-on: ubuntu-24.04
+    steps:
+      - run: df -h
+      - name: Free runner disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: bencher:ci
+          cache-from: type=gha
+
+      - name: Record container-tier goldens
+        # Read-write here, unlike the PR leg, so --update-goldens can write.
+        run: |
+          set -euo pipefail
+          for package in $(echo '${{ needs.discover.outputs.container }}' | jq -r '.[].package'); do
+            [ -f "$package/tests/goldens.json" ] || \
+              grep -q "GOLDENS_PLATFORM_SPECIFIC = True" "$package/tests/conftest.py" || continue
+            echo "::group::$package"
+            docker run --rm \
+              -v "$PWD/tests:/opt/bencher/tests:ro" \
+              -v "$PWD/$package/tests:/opt/bencher/$package/tests" \
+              -w "/opt/bencher/$package" --entrypoint sh bencher:ci -c "
+                /usr/local/bin/uv pip install --quiet \
+                  --python /opt/bencher/$package/.venv/bin/python pytest
+                /opt/bencher/$package/.venv/bin/python -m pytest tests -q -rf \
+                  -p no:cacheprovider -m 'not dataset' --update-goldens"
+            echo "::endgroup::"
+          done
+
+      - name: Record e2e goldens against the running container
+        run: |
+          docker run -d --name bencher -p 50051:50051 bencher:ci
+          for _ in $(seq 1 60); do
+            docker exec bencher /opt/bencher/BencherServer/.venv/bin/python -c "
+          import grpc, sys
+          try:
+              grpc.channel_ready_future(grpc.insecure_channel('localhost:50051')).result(timeout=3)
+          except Exception:
+              sys.exit(1)" && break
+            sleep 5
+          done
+          docker exec bencher /usr/local/bin/uv pip install --quiet \
+            --python /opt/bencher/BencherServer/.venv/bin/python pytest
+          docker cp tests bencher:/opt/bencher/tests
+          docker exec bencher /opt/bencher/BencherServer/.venv/bin/python -m pytest \
+            /opt/bencher/tests/e2e -q -p no:cacheprovider \
+            --target localhost:50051 --update-goldens
+          docker cp bencher:/opt/bencher/tests/e2e/goldens.json tests/e2e/goldens.json
+          docker rm -f bencher
+
+      - name: Show what was recorded
+        run: git --no-pager diff --stat -- '*goldens.json' && git --no-pager diff -- '*goldens.json'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: recorded-goldens
+          path: |
+            */tests/goldens.json
+            tests/e2e/goldens.json

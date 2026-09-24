@@ -1,61 +1,125 @@
 name: Update scaffold
 
-on: workflow_dispatch
+# Dispatched by the bencherscaffold repo's publish job on every release.
+#
+# This workflow used to `git push` straight to main after bumping only uv.lock.
+# That is how three breaking scaffold releases (0.6.2, 0.6.3, 0.6.4) landed on
+# main unverified; each surfaced ~40 minutes later in the container build. It now
+# updates the pyproject pin *and* the lock, runs the Tier 0 contract tests, and
+# opens a pull request instead of pushing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "bencherscaffold version to pin (blank = latest on PyPI)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  update-scaffold-version:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
+  bump:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      changed: ${{ steps.bump.outputs.changed }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: sudo apt-get install -y git curl g++ build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl python3-dev
-
-      - name: Install pyenv
-        run: |
-          curl https://pyenv.run | bash
-          echo "PYENV_ROOT=$HOME/.pyenv" >> $GITHUB_ENV
-          echo "$HOME/.pyenv/bin" >> $GITHUB_PATH
-          echo "$HOME/.pyenv/shims" >> $GITHUB_PATH
+      - uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           version: "0.9.2"
+          enable-cache: true
 
-      - name: Lock all subprojects
+      - name: Install the interpreters each package pins
+        # uv can fetch these directly; pyenv + a source build is not needed just
+        # to re-lock.
         run: |
-          for dir in *; do \
-            if [ -d "$dir" ]; then \
-              echo "Processing $dir"; \
-              cd $dir; \
-              if [ -f ".python-version" ]; then \
-                PYTHON_VERSION=$(cat .python-version | tr -d '[:space:]'); \
-                echo "Found .python-version in $(basename $dir), requires Python $PYTHON_VERSION"; \
-                if ! pyenv versions --bare | grep -q "^${PYTHON_VERSION}$"; then \
-                    echo "Installing Python $PYTHON_VERSION..."; \
-                    pyenv install $PYTHON_VERSION; \
-                fi; \
-                PYENV_VERSION=$PYTHON_VERSION uv cache clean; \
-                PYENV_VERSION=$PYTHON_VERSION uv lock --upgrade-package bencherscaffold; \
-              else \
-                echo "No .python-version file found in $(basename $dir), using default Python version"; \
-                uv cache clean; \
-                uv lock --upgrade-package bencherscaffold; \
-              fi; \
-              git add uv.lock || echo "No changes to uv.lock in $(basename $dir)"; \
-              cd ..; \
-            fi; \
+          sort -u */.python-version | while read -r v; do
+            [ -n "$v" ] && uv python install "$v"
           done
 
-      - name: Commit if changes
+      - name: Resolve the target version
+        id: resolve
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git commit -am "Update scaffold version"
-          git push
+          if [ -n "${{ inputs.version }}" ]; then
+            version="${{ inputs.version }}"
+          else
+            version=$(curl -fsSL -H 'Accept: application/vnd.pypi.simple.v1+json' \
+                        -H 'Cache-Control: no-cache' \
+                        https://pypi.org/simple/bencherscaffold/ \
+                      | python3 -c 'import json,sys; print(json.load(sys.stdin)["versions"][-1])')
+          fi
+          echo "Target bencherscaffold version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Update the pin and the lock in every package
+        id: bump
+        run: |
+          set -euo pipefail
+          version='${{ steps.resolve.outputs.version }}'
+          # `~=X.Y.Z` keeps the compatible-release form the repo already uses.
+          # The repo root is included deliberately: it is the contract-test
+          # project, it pins bencherscaffold too, and Tier 0 asserts that the
+          # root and every package lock the *same* version -- so skipping it
+          # would make this workflow fail its own gate.
+          for dir in . */; do
+            pkg="${dir%/}"
+            [ -f "$pkg/pyproject.toml" ] || continue
+            grep -q 'bencherscaffold' "$pkg/pyproject.toml" || continue
+            echo "== $pkg"
+            # The pin is the source of truth; updating only uv.lock is what let
+            # the two drift apart previously.
+            python3 - "$pkg/pyproject.toml" "$version" <<'PY'
+          import re, sys
+          path, version = sys.argv[1], sys.argv[2]
+          with open(path) as fh:
+              text = fh.read()
+          new, n = re.subn(r'bencherscaffold~=[0-9][^"\']*', f'bencherscaffold~={version}', text)
+          assert n == 1, f"expected exactly one bencherscaffold pin in {path}, found {n}"
+          with open(path, "w") as fh:
+              fh.write(new)
+          PY
+            # --refresh-package, not `uv cache clean`: the old workflow wiped the
+            # entire cache per package (slow), and a stale index is exactly why a
+            # freshly published version can appear unresolvable.
+            ( cd "$pkg" && uv lock --refresh-package bencherscaffold )
+          done
+          # Scoped to the files this step is allowed to touch, so an unrelated
+          # dirty file in the workspace cannot trigger an empty PR.
+          if git diff --quiet -- pyproject.toml uv.lock '*/pyproject.toml' '*/uv.lock'; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Tier 0 contract tests against the new scaffold
+        if: steps.bump.outputs.changed == 'true'
+        # The gate. A release that reshapes EvaluationResult fails here, naming
+        # every call site, before a PR is opened.
+        run: |
+          uv sync --group dev
+          uv run pytest tests -q
+
+      - name: Open a pull request
+        if: steps.bump.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/bencherscaffold-${{ steps.resolve.outputs.version }}
+          title: "Update bencherscaffold to ${{ steps.resolve.outputs.version }}"
+          commit-message: "Update bencherscaffold to ${{ steps.resolve.outputs.version }}"
+          body: |
+            Automated bump of `bencherscaffold` to
+            **${{ steps.resolve.outputs.version }}** in every package's
+            `pyproject.toml` pin and `uv.lock`.
+
+            Tier 0 contract tests passed, so the services' `EvaluationResult`
+            construction still matches the scaffold's descriptors. The container
+            build is *not* run here — merge triggers it, or dispatch
+            `docker_build.yml` manually if this release warrants an end-to-end
+            check first.
+          labels: dependencies

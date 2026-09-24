@@ -13,15 +13,25 @@ from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_
 from bo4mob import single_od_run
 
 LISTEN_HOST_ENV_VAR = 'BENCHER_BO4MOB_HOST'
-# our benchmarks will have names like 1ramp_221008_08-09_count where everything after 1ramp can vary
-# well match the names via regex
-valid_benchmark_expressions = [
-    r"1ramp_\d{6}_(06-07|08-09|17-18)_(count|speed)",
-    r"2corridor_\d{6}_(06-07|08-09|17-18)_(count|speed)",
-    r"3junction_\d{6}_(06-07|08-09|17-18)_(count|speed)",
-    r"4smallRegion_\d{6}_(06-07|08-09|17-18)_(count|speed)",
-    r"5fullRegion_\d{6}_(06-07|08-09|17-18)_(count|speed)",
-]
+# Benchmark names are templated: BASE-NAME_DATE_HOUR_EVAL-TYPE, e.g.
+# 1ramp_221008_08-09_count. There are 420 of them (5 networks x 14 dates x 3
+# hours x 2 metrics), so unlike the other services this one matches by regex
+# rather than enumerating. The networks are the declarative part: `dimensions`
+# is the number of OD pairs in that network's CSV template, and mirrors
+# benchmark-registry.json.
+NETWORKS = {
+    '1ramp': {'dimensions': 3, 'type': 'purely_integer'},
+    '2corridor': {'dimensions': 21, 'type': 'purely_integer'},
+    '3junction': {'dimensions': 44, 'type': 'purely_integer'},
+    '4smallRegion': {'dimensions': 151, 'type': 'purely_integer'},
+    '5fullRegion': {'dimensions': 10100, 'type': 'purely_integer'},
+}
+
+# Everything after the network name: a yymmdd date, one of three hour windows,
+# and the evaluation metric.
+NAME_SUFFIX_PATTERN = r"_\d{6}_(06-07|08-09|17-18)_(count|speed)"
+
+valid_benchmark_expressions = [network + NAME_SUFFIX_PATTERN for network in NETWORKS]
 
 
 class BO4MOBServiceServicer(DualStackGRCPService):
@@ -38,12 +48,29 @@ class BO4MOBServiceServicer(DualStackGRCPService):
             request: BenchmarkRequest,
             context
     ) -> EvaluationResult:
-        assert any(re.fullmatch(expr, request.benchmark.name) for expr in valid_benchmark_expressions), \
-            f"Invalid benchmark name: {request.benchmark.name}"
         x = [v.value for v in request.point.values]
-        print(f"Received point with {len(x)} values for benchmark {request.benchmark.name} and contents: {x}")
+        value = self.evaluate(request.benchmark.name, x)
+        return EvaluationResult(
+            objectives=[ObjectiveValue(name="f0", value=value)],
+        )
+
+    def evaluate(
+            self,
+            name: str,
+            x,
+            seed: int | None = None
+    ) -> float:
+        """Run one SUMO simulation and return its NRMSE.
+
+        Split out of evaluate_point so name validation and the OD-template
+        wiring are testable without a gRPC server.
+        """
+        if not any(re.fullmatch(expr, name) for expr in valid_benchmark_expressions):
+            raise ValueError(f"Invalid benchmark name: {name}")
+        request_name = name
+        print(f"Received point with {len(x)} values for benchmark {name} and contents: {x}")
         # we have "template" csv files od_1ramp.csv, od_2corridor.csv, ...in csv_templates folder
-        csv_filename = f"od_{request.benchmark.name.split('_')[0]}.csv"
+        csv_filename = f"od_{request_name.split('_')[0]}.csv"
         package_root = resources.files("bo4mobbenchmark")
         template_csv_path = package_root / "csv_templates" / csv_filename
         # replace the values in the "flow" column of the template csv with the values from x, use pandas
@@ -51,16 +78,16 @@ class BO4MOBServiceServicer(DualStackGRCPService):
         assert len(x) == len(df), f"Length of x ({len(x)}) does not match number of OD pairs ({len(df)})"
         df["flow"] = x
 
-        benchmark_date = request.benchmark.name.split("_")[1]
-        benchmark_hour = request.benchmark.name.split("_")[2]
-        benchmark_eval_type = request.benchmark.name.split("_")[3]
+        benchmark_date = request_name.split("_")[1]
+        benchmark_hour = request_name.split("_")[2]
+        benchmark_eval_type = request_name.split("_")[3]
 
         # save to TemporaryFile
         with tempfile.TemporaryDirectory() as tmpdir:
             temp_csv_path = f"{tmpdir}/od_input.csv"
             df.to_csv(temp_csv_path, index=False)
             single_od_run.run_single_simulation(
-                network_name=request.benchmark.name.split("_")[0],
+                network_name=request_name.split("_")[0],
                 date=benchmark_date,
                 hour=benchmark_hour,
                 eval_measure=benchmark_eval_type,
@@ -83,10 +110,7 @@ class BO4MOBServiceServicer(DualStackGRCPService):
                         shutil.rmtree(item_path)
                     else:
                         os.remove(item_path)
-        result = EvaluationResult(
-            objectives=[ObjectiveValue(name="f0", value=nrmse_value)],
-        )
-        return result
+        return nrmse_value
 
 
 def serve():

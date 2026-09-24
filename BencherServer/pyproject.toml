@@ -8,7 +8,12 @@ readme = "README.md"
 dependencies = [
     "grpcio>=1.60.1,<2",
     "protobuf>=4.25.2,<5",
-    "bencherscaffold~=0.6.3",
+    "bencherscaffold~=0.6.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
 ]
 
 [project.scripts]
@@ -17,3 +22,10 @@ start-benchmark-service = "bencherserver.main:serve"
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.bencher.ci]
+# Runs on a plain GitHub runner: grpcio and protobuf only.
+tier = "runner"

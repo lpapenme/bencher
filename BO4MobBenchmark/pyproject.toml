@@ -5,10 +5,15 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "bencherscaffold~=0.6.3",
+    "bencherscaffold~=0.6.4",
     "bo4mob",
     "pandas>=2.2.3",
     "torch==2.6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
 ]
 
 [project.scripts]
@@ -26,3 +31,12 @@ explicit = true
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "dataset: needs a baked-in dataset; runs on the container tier only",
+]
+
+[tool.bencher.ci]
+tier = "container"

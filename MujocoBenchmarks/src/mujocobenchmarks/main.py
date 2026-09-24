@@ -1,6 +1,12 @@
+# This package pins Python 3.8, where PEP 604 annotations (`int | None`)
+# raise TypeError at definition time. Deferring annotation evaluation keeps
+# the modern syntax working here.
+from __future__ import annotations
+
 import logging
 import os
 from argparse import ArgumentParser
+from typing import Optional
 
 import gym
 import numpy as np
@@ -10,28 +16,33 @@ from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_
 from mujocobenchmarks.functions import func_factories
 
 LISTEN_HOST_ENV_VAR = 'BENCHER_MUJOCO_HOST'
-func_factory_map = {
-    'mujoco-ant': lambda
-        _: func_factories["ant"].make_object(),
-    'mujoco-hopper': lambda
-        _: func_factories["hopper"].make_object(),
-    'mujoco-walker': lambda
-        _: func_factories["walker_2d"].make_object(),
-    'mujoco-halfcheetah': lambda
-        _: func_factories["half_cheetah"].make_object(),
-    'mujoco-swimmer': lambda
-        _: func_factories["swimmer"].make_object(),
-    'mujoco-humanoid': lambda
-        _: func_factories["humanoid"].make_object(),
-}
-
-benchmark_bounds = {
-    'mujoco-ant': (-1, 1),
-    'mujoco-hopper': (-1.4, 1.4),
-    'mujoco-walker': (-1.8, 0.9),
-    'mujoco-halfcheetah': (-1, 1),
-    'mujoco-swimmer': (-1, 1),
-    'mujoco-humanoid': (-1, 1),
+# The benchmarks this service serves, as data. `bounds` is the native domain a
+# point in [0, 1]^d is mapped onto; `factory` builds the MuJoCo rollout. The
+# lunarlander entry has no factory -- it is a gym environment, handled below --
+# but it belongs in the same mapping so the registry stays checkable.
+# Dimensions and type mirror benchmark-registry.json.
+BENCHMARKS = {
+    'mujoco-ant': {
+        'dimensions': 888, 'type': 'purely_continuous', 'bounds': (-1, 1),
+        'factory': lambda: func_factories["ant"].make_object()},
+    'mujoco-hopper': {
+        'dimensions': 33, 'type': 'purely_continuous', 'bounds': (-1.4, 1.4),
+        'factory': lambda: func_factories["hopper"].make_object()},
+    'mujoco-walker': {
+        'dimensions': 102, 'type': 'purely_continuous', 'bounds': (-1.8, 0.9),
+        'factory': lambda: func_factories["walker_2d"].make_object()},
+    'mujoco-halfcheetah': {
+        'dimensions': 102, 'type': 'purely_continuous', 'bounds': (-1, 1),
+        'factory': lambda: func_factories["half_cheetah"].make_object()},
+    'mujoco-swimmer': {
+        'dimensions': 16, 'type': 'purely_continuous', 'bounds': (-1, 1),
+        'factory': lambda: func_factories["swimmer"].make_object()},
+    'mujoco-humanoid': {
+        'dimensions': 6392, 'type': 'purely_continuous', 'bounds': (-1, 1),
+        'factory': lambda: func_factories["humanoid"].make_object()},
+    'lunarlander': {
+        'dimensions': 12, 'type': 'purely_continuous', 'bounds': None,
+        'factory': None},
 }
 
 
@@ -77,38 +88,58 @@ class MujocoServiceServicer(DualStackGRCPService):
             request: BenchmarkRequest,
             context
     ) -> EvaluationResult:
-        x = [v.value for v in request.point.values]
-        x = np.array(x).reshape(1, -1)
+        x = np.array([v.value for v in request.point.values])
         seed = request.random_seed if request.HasField('random_seed') else None
-        if request.benchmark.name in func_factory_map.keys():
-            # x is in [0, 1] space, we need to map it to the benchmark space
-            lb, ub = benchmark_bounds[request.benchmark.name]
-            x = lb + (ub - lb) * x
-            func_factory = func_factory_map[request.benchmark.name](None)
-            result = EvaluationResult(
-                objectives=[ObjectiveValue(name="f0", value=-float(func_factory(x, seed=seed)[0].squeeze()))],
-            )
-        elif request.benchmark.name == 'lunarlander':
-            env = gym.make("LunarLander-v2")
-            try:
-                total_reward = 0
-                s = env.reset(seed=seed)
-                while True:
-                    a = heuristic_controller(s, x.squeeze())
-                    s, r, terminated, _ = env.step(a)
-                    total_reward += r
+        value = self.evaluate(request.benchmark.name, x, seed=seed)
+        return EvaluationResult(
+            objectives=[ObjectiveValue(name="f0", value=value)],
+        )
 
-                    if terminated:
-                        break
-            finally:
-                env.close()
-            result = EvaluationResult(
-                objectives=[ObjectiveValue(name="f0", value=-total_reward)],
-            )
-        else:
+    def evaluate(
+            self,
+            name: str,
+            x: np.ndarray,
+            seed: Optional[int] = None
+    ) -> float:
+        """Evaluate a point given in [0, 1]^d; returns a cost (negated reward).
+
+        Split out of evaluate_point so the per-benchmark rescaling is testable
+        without standing up a gRPC server. Both the MuJoCo rollouts and the gym
+        LunarLander episode are stochastic; `seed` is threaded through for
+        reproducibility once the services accept BenchmarkRequest.random_seed.
+        """
+        if name not in BENCHMARKS:
             raise ValueError("Invalid benchmark name")
+        spec = BENCHMARKS[name]
+        x = np.array(x).reshape(1, -1)
 
-        return result
+        if spec['factory'] is not None:
+            # x is in [0, 1] space, we need to map it to the benchmark space
+            lb, ub = spec['bounds']
+            x = lb + (ub - lb) * x
+            # The seed must reach the rollout: functions.py spawns one child
+            # seed per rollout from it. Dropping it here silently made every
+            # MuJoCo benchmark non-reproducible while lunarlander looked fine.
+            return -float(spec['factory']()(x, seed=seed)[0].squeeze())
+
+        return -self._lunarlander_reward(x.squeeze(), seed=seed)
+
+    @staticmethod
+    def _lunarlander_reward(weights: np.ndarray, seed: Optional[int] = None) -> float:
+        """Total reward of one LunarLander episode under a heuristic controller."""
+        env = gym.make("LunarLander-v2")
+        try:
+            total_reward = 0
+            s = env.reset() if seed is None else env.reset(seed=seed)
+            while True:
+                a = heuristic_controller(s, weights)
+                s, r, terminated, _ = env.step(a)
+                total_reward += r
+                if terminated:
+                    break
+        finally:
+            env.close()
+        return total_reward
 
 
 def serve():

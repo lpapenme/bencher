@@ -7,9 +7,14 @@ requires-python = ">=3.10,<4.0"
 readme = "README.md"
 dependencies = [
     "ioh (>=0.3.18,<0.4.0)",
-    "bencherscaffold~=0.6.3",
+    "bencherscaffold~=0.6.4",
 ]
 packages = [{ include = "iohbenchmarks" }]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+]
 
 [project.scripts]
 start-benchmark-service = "iohbenchmarks.main:serve"
@@ -17,3 +22,10 @@ start-benchmark-service = "iohbenchmarks.main:serve"
 [build-system]
 requires = ["uv_build>=0.9.6,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.bencher.ci]
+# Prebuilt ioh wheel, no datasets.
+tier = "runner"

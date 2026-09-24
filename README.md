@@ -1,5 +1,12 @@
-<!-- Builds currently failing due to the container size exceeding the size of gh runners -->
-<!-- # [![Docker Build](https://github.com/LeoIV/bencher/actions/workflows/docker_build.yml/badge.svg)](https://github.com/LeoIV/bencher/actions/workflows/docker_build.yml) -->
+# Bencher
+
+[![PR checks](https://github.com/lpapenme/bencher/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/lpapenme/bencher/actions/workflows/pr-checks.yml)
+[![Docker Build](https://github.com/lpapenme/bencher/actions/workflows/docker_build.yml/badge.svg?branch=main)](https://github.com/lpapenme/bencher/actions/workflows/docker_build.yml)
+[![Docker Hub](https://img.shields.io/docker/image-size/gaunab/bencher/latest?logo=docker&label=image)](https://hub.docker.com/r/gaunab/bencher)
+[![Python](https://img.shields.io/badge/python-3.8%20%7C%203.10%20%7C%203.11-blue?logo=python&logoColor=white)](#available-benchmarks)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2505.21321-b31b1b)](https://arxiv.org/abs/2505.21321)
+
 
 Bencher is a lightweight benchmarking framework for black-box optimization designed to make *benchmark execution* simple and reproducible, without forcing benchmark dependencies into your optimizer’s environment. It follows a client–server architecture: benchmarks run in an isolated, containerized server, while optimizers communicate with the server through a stable gRPC interface via a small Python client (`bencherscaffold`).
 
@@ -14,7 +21,7 @@ The Docker container can be pulled from the [Docker Hub](https://hub.docker.com/
 It contains all benchmarks and dependencies and exposes the benchmark server via port 50051.
 All service ports are configurable via environment variables (see [Port Configuration](#port-configuration)).
 
-We give an exemplary usage of the Docker container in the [bencherclient](https://github.com/LeoIV/bencherclient)
+We give an exemplary usage of the Docker container in the [bencherclient](https://github.com/lpapenme/bencherclient)
 repository.
 
 ```shell
@@ -149,7 +156,7 @@ Stage: build
     pip install your-dependencies
 
 %startscript
-    bash -c "/docker-entrypoint.sh"
+    bash -c "python3.11 /entrypoint.py"
 
 %runscript
     bash -c "your-command-to-run-your-app"
@@ -211,13 +218,13 @@ apptainer run instance://your-instance-name
 
 ### Evaluating a benchmark
 
-We show how to run all benchmarks in the [`bencherclient`](https://github.com/LeoIV/bencherclient) repository.
+We show how to run all benchmarks in the [`bencherclient`](https://github.com/lpapenme/bencherclient) repository.
 You don't need to use this repository, it is mainly used to test the benchmarks.
 The general setup to evaluate a benchmark is as follows.
-First, install the [`bencherscaffold`](https://github.com/LeoIV/BencherScaffold) package:
+First, install the [`bencherscaffold`](https://github.com/lpapenme/BencherScaffold) package:
 
 ```shell
-pip install git+https://github.com/LeoIV/BencherScaffold
+pip install git+https://github.com/lpapenme/BencherScaffold
 ```
 
 Then, you can use the following code to evaluate a benchmark:
@@ -256,6 +263,45 @@ The urban mobility benchmarks (`1ramp_*`, `2corridor_*`, etc.) follow a template
 
 For example, a valid benchmark name is `1ramp_221008_08-09_count`.
 
+### Reproducibility
+
+Bencher pins benchmark *code and data* in the container image, so every user
+evaluates the same function. Two caveats are worth knowing before you report
+numbers.
+
+**Stochastic benchmarks vary between identical calls.** The `Noisy` column below
+marks them. `BenchmarkRequest` carries an optional `random_seed` (bencherscaffold
+0.6.4 and later) which makes a run repeatable:
+
+```python
+client.evaluate_point(benchmark_name='mujoco-swimmer', point=point, random_seed=7)
+```
+
+Today **only the MuJoCo family and `lunarlander` honour it.** `pestcontrol`,
+`rover` and `robotpushing` are still stochastic with no way to seed them through
+the API, so repeated calls will differ. Seeding those is open work.
+
+**Seeded rollouts are reproducible on one machine, not across architectures.**
+The physics simulations amplify floating-point differences, so the same seed on
+a different CPU gives a different answer. Measured between macOS/arm64 and the
+linux/amd64 container at seed 7:
+
+| benchmark | arm64 | linux/amd64 |
+|---|---|---|
+| `lunarlander` | 87.79251775658189 | 87.79232914609621 |
+| `mujoco-hopper` | -145.43122334242307 | -146.28735420150608 |
+| `mujoco-walker` | 4.309704043416025 | **-1.7118133581203339** |
+
+`mujoco-walker` changes sign. This is inherent to chaotic dynamics in floating
+point, not something Bencher can pin down. In practice it rarely bites, because
+the supported way to run Bencher is the published `linux/amd64` image — but do
+not compare rollout numbers gathered on different hardware, and say which
+architecture you used when publishing them.
+
+The deterministic benchmarks have no such caveat: `bbob-*`, `pbo-*`, `graph-*`,
+`maxsat*`, `lasso-*`, `svm` and `mopta08` reproduce bit-for-bit across
+architectures, and the test suite pins 64 of them to recorded values.
+
 The following benchmarks are available:
 
 | Benchmark Name             | # Dimensions | Type        | Source(s)      | Noisy    |
@@ -274,7 +320,7 @@ The following benchmarks are available:
 | maxsat125                  | 125          | binary      | [^7]           | &#x2612; |
 | robotpushing               | 14           | continuous  | [^3]           | &#x2611; |
 | lunarlander                | 12           | continuous  | [^3]           | &#x2611; |
-| rover                      | 60           | continuous  | [^3]           | &#x2612; |
+| rover                      | 60           | continuous  | [^3]           | &#x2611; |
 | mujoco-ant                 | 888          | continuous  | [^9],[^5]      | &#x2611; |
 | mujoco-hopper              | 33           | continuous  | [^9],[^5]      | &#x2611; |
 | mujoco-walker              | 102          | continuous  | [^9],[^5]      | &#x2611; |
@@ -288,7 +334,7 @@ The following benchmarks are available:
 | 3junction_*                | 44           | integer     | [^14]          | &#x2612; |
 | 4smallRegion_*             | 151          | integer     | [^14]          | &#x2612; |
 | 5fullRegion_*              | 10100        | integer     | [^14]          | &#x2612; |
-| pestcontrol                | 25           | categorical | [^10],[^13]    | &#x2612; |
+| pestcontrol                | 25           | categorical | [^10],[^13]    | &#x2611; |
 | bbob-sphere                | any          | continuous  | [^11],[^12]    | &#x2612; |
 | bbob-ellipsoid             | any          | continuous  | [^11],[^12]    | &#x2612; |
 | bbob-rastrigin             | any          | continuous  | [^11],[^12]    | &#x2612; |
@@ -343,8 +389,8 @@ The following benchmarks are available:
 | graph-maxcut2002           | 800          | binary      | [^11]          | &#x2612; |
 | graph-maxcut2003           | 800          | binary      | [^11]          | &#x2612; |
 | graph-maxcut2004           | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcoverage2100      | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcoverage2101      | 800          | binary      | [^11]          | &#x2612; |
+| graph-maxcoverage2100      | 450          | binary      | [^11]          | &#x2612; |
+| graph-maxcoverage2101      | 450          | binary      | [^11]          | &#x2612; |
 
 # Citation
 If you use this repository or the benchmarks in your research, please cite the following [paper](https://arxiv.org/abs/2505.21321):
@@ -404,11 +450,11 @@ One main problem during the compilation occurs if you use a x86_64 Python on an 
 `David Eriksson, Michael Pearce, Jacob Gardner, Ryan D Turner and Matthias Poloczek, "Scalable Global Optimization via Local Bayesian Optimization." NeurIPS 2019`)
 [^4]: [`SAASBO`](https://github.com/martinjankowiak/saasbo)
 `David Eriksson and Martin Jankowiak, "High-dimensional Bayesian optimization with sparse axis-aligned subspaces", UAI 2021`
-[^5]: [`BAxUS`](https://github.com/LeoIV/BAxUS)
+[^5]: [`BAxUS`](https://github.com/lpapenme/BAxUS)
 `Leonard Papenmeier, Luigi Nardi, and Matthias Poloczek, "Increasing the Scope as You Learn: Adaptive Bayesian Optimization in Nested Subspaces", NeurIPS 2022`
 [^6]: [`BODi`](https://github.com/aryandeshwal/BODi)
 `Aryan Deshwal, Sebastian Ament, Maximilian Balandat, Eytan Bakshy, Janardhan Rao Doppa, and David Eriksson, "Bayesian Optimization over High-Dimensional Combinatorial Spaces via Dictionary-based Embeddings", AISTATS 2023`
-[^7]: [`Bounce`](https://github.com/LeoIV/bounce)
+[^7]: [`Bounce`](https://github.com/lpapenme/bounce)
 `Leonard Papenmeier, Luigi Nardi and Matthias Poloczek, "Bounce: Reliable High-Dimensional Bayesian Optimization for Combinatorial and Mixed Spaces", NeurIPS 2023`
 [^8]: The SVM benchmark is not included in the repository and was obtained by corresponding with the authors of the
 paper.
