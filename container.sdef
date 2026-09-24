@@ -20,14 +20,10 @@ Stage: build
     # suite lives in the bencher repository now (tests/e2e), driven over gRPC
     # from outside the container, so the image no longer needs either.
     #
-    # It also used to run `pyenv global 3.11.13`, which was load-bearing: the
-    # entrypoint's `python3.11` is a pyenv shim and Apptainer ignores Docker's
-    # WORKDIR, so the shim had nothing to resolve from. That now lives in the
-    # Dockerfile, so it holds for any image derived from it.
     :
 
 %startscript
-    bash -c "python3.11 /entrypoint.py"
+    /opt/bencher/BencherServer/.venv/bin/python /entrypoint.py
 
 %runscript
     echo "Container was created"

@@ -51,11 +51,13 @@ Work on a single benchmark family locally (no Docker):
 
 ```shell
 cd LassoBenchmarks       # or MujocoBenchmarks, IOHBenchmarks, etc.
-uv sync                  # recreates .venv from uv.lock against the pinned .python-version
+version="$(cat .python-version)"
+uv python install "$version"
+UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync --python "$version"
 uv run start-benchmark-service   # starts that family's service on its own internal port
 ```
 
-To run the front door against locally-running family services, also `cd BencherServer && uv sync && uv run start-benchmark-service` — but note that the registry hardcodes `host: localhost` (default) and the family ports above must be free.
+To run the front door against locally-running family services, use `cd BencherServer`, then `version="$(cat .python-version)"`, `uv python install "$version"`, and `UV_MANAGED_PYTHON=1 UV_PYTHON_DOWNLOADS=never uv sync --python "$version"` before `uv run start-benchmark-service` — but note that the registry hardcodes `host: localhost` (default) and the family ports above must be free.
 
 Apptainer / Singularity is documented in `README.md`; the same image is the base.
 
@@ -69,7 +71,7 @@ Apptainer / Singularity is documented in `README.md`; the same image is the base
   a single recursive chmod at the end cost 462s of every rebuild. `tests/test_dockerfile.py`
   guards these.
 
-- **Python versions differ per package.** `EboBenchmarks` and `MujocoBenchmarks` pin 3.8.20, `LassoBenchmarks` pins 3.10.19, the rest 3.11.13. Syntax must match: `X | Y` annotations need 3.10, so the 3.8 packages carry `from __future__ import annotations`, and `tests/test_python_compatibility.py` enforces it. The Dockerfile uses pyenv to install whichever `.python-version` each package declares. Don't bump a `.python-version` without verifying the upstream library still works.
+- **Python versions differ per package.** `EboBenchmarks` and `MujocoBenchmarks` pin 3.8.20, `LassoBenchmarks` pins 3.10.19, the rest 3.11.13. Syntax must match: `X | Y` annotations need 3.10, so the 3.8 packages carry `from __future__ import annotations`, and `tests/test_python_compatibility.py` enforces it. The Dockerfile uses uv-managed Python installations for each package's `.python-version`. Don't bump a `.python-version` without verifying the upstream library still works.
 - **Heavy datasets are baked into the image at build time** to avoid runtime downloads: MaxSAT corpora, libsvm datasets (via `libsvmdata`), the SVM slice-localization dataset, and the MOPTA executable. The relevant env vars (`LIBSVMDATA_HOME`, `SVM_DATA_DIR`, `MOPTA_DATA_DIR`) are set in the Dockerfile and must match what the benchmark code reads at runtime. Editing those paths means editing both.
 - **MuJoCo** lives at `/opt/mujoco210` inside the container; locally on macOS see the `~/.mujoco/mujoco210` setup in `README.md`. `mujoco-py` is finicky about `LD_LIBRARY_PATH` and `MUJOCO_PY_MUJOCO_PATH` — both are set in the Dockerfile.
 - **Native build deps.** macOS local builds need Homebrew `swig`, `gfortran`, `openblas`, `pkg-config`, `glfw`, `libomp`, and `PKG_CONFIG_PATH` exported to point at the OpenBLAS pkgconfig directory. A `x86_64` Python on Apple Silicon will fail builds — use an arm64 Python.

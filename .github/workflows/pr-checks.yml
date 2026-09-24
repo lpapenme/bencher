@@ -40,12 +40,26 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
           cache-suffix: root
-      - run: uv python install 3.11.13
+      - name: Install the interpreters each package pins
+        # `uv lock --check` in test_packaging resolves against each package's
+        # own .python-version, and downloads are off below, so every pin must
+        # be installed up front -- not just the root one. awk, not cat: a pin
+        # file without a trailing newline would fuse with the next one.
+        run: uv python install $(awk 'NF' .python-version */.python-version | sort -u)
       - name: Install contract-test dependencies
         # Root project only: pytest + bencherscaffold. No benchmark package is
         # installed here, which is the whole point of this tier.
-        run: uv sync --group dev
-      - run: uv run pytest tests -q
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
+        run: |
+          version="$(cat .python-version)"
+          uv sync --python "$version" --group dev
+      - name: Run contract tests
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
+        run: uv run pytest tests -q
 
   discover:
     name: Discover test matrix
@@ -98,10 +112,16 @@ jobs:
 
       - name: Install dependencies
         working-directory: ${{ matrix.pkg.package }}
-        run: uv sync --locked --group dev
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
+        run: uv sync --python "${{ matrix.pkg.python }}" --locked --group dev
 
       - name: Run tests
         working-directory: ${{ matrix.pkg.package }}
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         # --locked so a leg cannot silently re-resolve and paper over the
         # pyproject/lock divergence Tier 0 exists to catch. Dataset-dependent
         # cases are deselected: the datasets live in the image, not here.

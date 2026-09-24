@@ -36,12 +36,10 @@ jobs:
           enable-cache: true
 
       - name: Install the interpreters each package pins
-        # uv can fetch these directly; pyenv + a source build is not needed just
-        # to re-lock.
-        run: |
-          sort -u */.python-version | while read -r v; do
-            [ -n "$v" ] && uv python install "$v"
-          done
+        # Include the root contract project as well as every package project.
+        # awk, not cat: a pin file without a trailing newline would fuse
+        # with the next one.
+        run: uv python install $(awk 'NF' .python-version */.python-version | sort -u)
 
       - name: Resolve the target version
         id: resolve
@@ -59,6 +57,9 @@ jobs:
 
       - name: Update the pin and the lock in every package
         id: bump
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: |
           set -euo pipefail
           version='${{ steps.resolve.outputs.version }}'
@@ -87,7 +88,8 @@ jobs:
             # --refresh-package, not `uv cache clean`: the old workflow wiped the
             # entire cache per package (slow), and a stale index is exactly why a
             # freshly published version can appear unresolvable.
-            ( cd "$pkg" && uv lock --refresh-package bencherscaffold )
+            python_version="$(cat "$pkg/.python-version")"
+            ( cd "$pkg" && uv lock --python "$python_version" --refresh-package bencherscaffold )
           done
           # Scoped to the files this step is allowed to touch, so an unrelated
           # dirty file in the workspace cannot trigger an empty PR.
@@ -101,8 +103,12 @@ jobs:
         if: steps.bump.outputs.changed == 'true'
         # The gate. A release that reshapes EvaluationResult fails here, naming
         # every call site, before a PR is opened.
+        env:
+          UV_MANAGED_PYTHON: "1"
+          UV_PYTHON_DOWNLOADS: never
         run: |
-          uv sync --group dev
+          version="$(cat .python-version)"
+          uv sync --python "$version" --group dev
           uv run pytest tests -q
 
       - name: Open a pull request
