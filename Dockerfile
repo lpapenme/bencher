@@ -1,16 +1,4 @@
 # Bencher container.
-#
-# Layer order is deliberate: everything is arranged so that an ordinary source
-# change re-runs as little as possible. Previously `COPY . /opt/bencher` sat
-# directly above the interpreter+uv sync step, so editing a README re-installed
-# three interpreters, rebuilt every virtualenv and re-downloaded several hundred MB of
-# datasets. The rule here is: the more expensive and the less often it changes,
-# the earlier it goes.
-#
-# There is also a .dockerignore now. Without it the build context was ~3.8 GB,
-# almost all of it local .venv directories -- which this file then overwrote.
-# Excluding them is what makes the split COPY below safe: the venvs built in the
-# dependency layer survive the source copy instead of being clobbered.
 
 ############################  system  ############################
 # OS packages, MuJoCo, uv. Changes only when this file does.

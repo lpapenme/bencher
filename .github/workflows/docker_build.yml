@@ -73,8 +73,6 @@ jobs:
           tags: ${{ env.TEST_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # The old CACHEBUST build-arg was inert: the Dockerfile never declared
-          # `ARG CACHEBUST`, so it busted nothing and only emitted a warning.
 
       - name: Start the container
         run: docker run -d --name bencher -p 50051:50051 ${{ env.TEST_TAG }}
