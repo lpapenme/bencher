@@ -13,7 +13,7 @@ Bencher is a lightweight benchmarking framework for black-box optimization desig
 Each benchmark (or compatible benchmark group) is executed in its own dedicated Python environment, which avoids dependency conflicts and makes it easy to mix benchmarks with different (and sometimes outdated) requirements. The Bencher server can be deployed locally via Docker or on HPC systems via Singularity/Apptainer, enabling the same benchmark setup across machines and runs. This repository contains the Bencher server and the benchmark implementations
 
 * See the paper for details: https://arxiv.org/abs/2505.21321
-* See this blogpost for an example of how you can integrate `bencher` in your workflow: https://leonard.papenmeier.io/2026/02/05/adding-bencher-to-existing-code.html
+* See this blogpost for an example of how you can integrate `bencher` in your workflow: https://leonard.papenmeier.io/2026/02/05/how-to-add-dozens-of-real-world-benchmarks-to-existing-code-within-five-minutes.html
 
 # Docker Container
 
