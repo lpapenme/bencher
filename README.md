@@ -1,7 +1,7 @@
 # Bencher
 
 [![PR checks](https://github.com/lpapenme/bencher/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/lpapenme/bencher/actions/workflows/pr-checks.yml)
-[![Docker Build](https://github.com/lpapenme/bencher/actions/workflows/docker_build.yml/badge.svg?branch=main)](https://github.com/lpapenme/bencher/actions/workflows/docker_build.yml)
+[![Docker Build](https://github.com/lpapenme/bencher/actions/workflows/container_build.yml/badge.svg?branch=main)](https://github.com/lpapenme/bencher/actions/workflows/container_build.yml)
 [![Docker Hub](https://img.shields.io/docker/image-size/gaunab/bencher/latest?logo=docker&label=image)](https://hub.docker.com/r/gaunab/bencher)
 [![Python](https://img.shields.io/badge/python-3.8%20%7C%203.10%20%7C%203.11-blue?logo=python&logoColor=white)](#available-benchmarks)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)

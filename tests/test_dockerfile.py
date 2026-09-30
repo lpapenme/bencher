@@ -181,7 +181,7 @@ def test_apptainer_image_is_not_built_as_a_sandbox():
     """A --sandbox is a writable directory, so it reproduces none of the
     read-only-filesystem failures that justify testing Apptainer at all -- and
     the README tells users to build a .sif."""
-    workflow = (REPO_ROOT / ".github" / "workflows" / "docker_build.yml").read_text()
+    workflow = (REPO_ROOT / ".github" / "workflows" / "container_build.yml").read_text()
     # Match the command, not the word: the workflow explains in a comment why it
     # deliberately does not use --sandbox, and a bare substring check trips on it.
     assert not re.search(r'apptainer build[^\n]*--sandbox', workflow), (

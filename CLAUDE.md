@@ -87,7 +87,7 @@ Apptainer / Singularity is documented in `README.md`; the same image is the base
   Record for another architecture with the `record-goldens` workflow_dispatch
   input, which captures on a real runner and uploads an artifact -- never under
   emulation, where results may differ from real hardware.
-- **CI runs three workflows.** `pr-checks.yml` on every PR: Tier 0, plus a per-package matrix derived from each package's `[tool.bencher.ci] tier`, plus an informational container leg. `docker_build.yml` builds the image and runs `tests/e2e` nightly, on `main`, on tags, and on demand. `update_scaffold_version.yml` bumps `bencherscaffold` across all ten projects, gates on Tier 0, and opens a PR — it no longer pushes to `main`.
+- **CI runs three workflows.** `pr-checks.yml` on every PR: Tier 0, plus a per-package matrix derived from each package's `[tool.bencher.ci] tier`, plus an informational container leg. `container_build.yml` builds the image and runs `tests/e2e` nightly, on `main`, on tags, and on demand. `update_scaffold_version.yml` bumps `bencherscaffold` across all ten projects, gates on Tier 0, and opens a PR — it no longer pushes to `main`.
 - **gRPC types come from `bencherscaffold`**, not this repo. Don't try to regenerate protobufs here. Family services implement `SecondLevelBencher`; only `BencherServer` implements `Bencher`, which is why `BencherClient` can only talk to the front door.
 
 ## Conventions (from AGENTS.md)

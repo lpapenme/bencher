@@ -124,7 +124,7 @@ jobs:
     runs-on: ubuntu-24.04
     # Informational on PRs: building the image means restoring a ~3 GB layer
     # cache, so this takes minutes where the other legs take seconds. The
-    # nightly docker_build.yml is the enforcing run.
+    # nightly container_build.yml is the enforcing run.
     continue-on-error: true
     steps:
       - run: df -h

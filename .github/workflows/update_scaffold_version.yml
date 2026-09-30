@@ -120,6 +120,6 @@ jobs:
             Tier 0 contract tests passed, so the services' `EvaluationResult`
             construction still matches the scaffold's descriptors. The container
             build is *not* run here — merge triggers it, or dispatch
-            `docker_build.yml` manually if this release warrants an end-to-end
+            `container_build.yml` manually if this release warrants an end-to-end
             check first.
           labels: dependencies
