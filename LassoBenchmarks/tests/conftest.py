@@ -7,8 +7,11 @@ import pytest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "tests"))
 
+from libsvmdata.datasets import get_data_home
+
 from lassobenchmarks.main import BENCHMARKS, LassoServiceServicer
 
+import datasets  # noqa: E402
 import goldens as goldens_store  # noqa: E402
 
 GOLDENS_PATH = pathlib.Path(__file__).resolve().parent / "goldens.json"
@@ -24,6 +27,15 @@ SMALL_REAL = ["lasso-diabetes", "lasso-breastcancer"]
 LARGE_REAL = ["lasso-dna", "lasso-leukemia", "lasso-rcv1"]
 
 
+# What the dataset-marked tests read: lasso-dna's libsvm "dna" split, where
+# libsvmdata caches it ($LIBSVMDATA_HOME/libsvm, baked into the image).
+# X is stored as .npy or .npz depending on sparsity, hence the glob.
+DATASET_FILES = [
+    get_data_home() / "multiclass" / "dna.scale_data.*",
+    get_data_home() / "multiclass" / "dna.scale_target.npy",
+]
+
+
 def point_for(name):
     """Mid-domain: 0.5 in [0, 1] maps to 0.0 once rescaled to [-1, 1]."""
     return np.full(BENCHMARKS[name]['dimensions'], 0.5)
@@ -32,6 +44,10 @@ def point_for(name):
 def pytest_addoption(parser):
     parser.addoption("--update-goldens", action="store_true",
                      help="rewrite goldens.json from this run")
+
+
+def pytest_collection_modifyitems(config, items):
+    datasets.skip_unless_present(items, datasets.absent(DATASET_FILES))
 
 
 @pytest.fixture(scope="module")

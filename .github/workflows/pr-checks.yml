@@ -104,8 +104,9 @@ jobs:
         working-directory: ${{ matrix.pkg.package }}
         # --locked so a leg cannot silently re-resolve and paper over the
         # pyproject/lock divergence Tier 0 exists to catch. Dataset-dependent
-        # cases are deselected: the datasets live in the image, not here.
-        run: uv run --locked --group dev pytest tests -q -rf -m "not dataset" --junitxml=junit.xml
+        # cases skip themselves here (tests/datasets.py): the data lives in the
+        # image, and the container leg runs them there.
+        run: uv run --locked --group dev pytest tests -q -rf --junitxml=junit.xml
 
       - name: How to reproduce
         if: failure()
@@ -159,14 +160,37 @@ jobs:
           failed=0
           for package in $(echo '${{ needs.discover.outputs.container }}' | jq -r '.[].package'); do
             echo "::group::$package"
-            docker run --rm \
+            docker run --rm -e BENCHER_REQUIRE_DATASETS=1 \
               -v "$PWD/tests:/opt/bencher/tests:ro" \
               -v "$PWD/$package/tests:/opt/bencher/$package/tests:ro" \
               -w "/opt/bencher/$package" --entrypoint sh bencher:ci -c "
                 /usr/local/bin/uv pip install --quiet \
                   --python /opt/bencher/$package/.venv/bin/python pytest
                 /opt/bencher/$package/.venv/bin/python -m pytest tests -q -rf \
-                  -p no:cacheprovider -m 'not dataset'" || failed=1
+                  -p no:cacheprovider" || failed=1
+            echo "::endgroup::"
+          done
+          exit $failed
+
+      - name: Run runner-tier packages' dataset tests
+        # Runner-tier suites run on a bare runner, where their dataset cases
+        # skip. The data is baked into the image, so run just those cases here.
+        # BENCHER_REQUIRE_DATASETS=1 turns a missing file into an error rather
+        # than a skip, so a broken bake shows up as a failure.
+        run: |
+          set -euo pipefail
+          failed=0
+          for package in $(echo '${{ needs.discover.outputs.runner }}' | jq -r '.[].package'); do
+            grep -rqs "pytest.mark.dataset" "$package/tests" || continue
+            echo "::group::$package"
+            docker run --rm -e BENCHER_REQUIRE_DATASETS=1 \
+              -v "$PWD/tests:/opt/bencher/tests:ro" \
+              -v "$PWD/$package/tests:/opt/bencher/$package/tests:ro" \
+              -w "/opt/bencher/$package" --entrypoint sh bencher:ci -c "
+                /usr/local/bin/uv pip install --quiet \
+                  --python /opt/bencher/$package/.venv/bin/python pytest
+                /opt/bencher/$package/.venv/bin/python -m pytest tests -q -rf \
+                  -p no:cacheprovider -m dataset" || failed=1
             echo "::endgroup::"
           done
           exit $failed

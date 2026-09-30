@@ -34,9 +34,6 @@ build-backend = "uv_build"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = [
-    "dataset: needs a baked-in dataset; runs on the container tier only",
-]
 
 [tool.bencher.ci]
 tier = "container"
