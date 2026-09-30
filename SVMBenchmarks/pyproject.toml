@@ -28,7 +28,7 @@ build-backend = "uv_build"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "dataset: needs a baked-in dataset; runs on the container tier only",
+    "dataset: reads a baked-in dataset; skipped unless it is on disk (see tests/datasets.py)",
 ]
 
 [tool.bencher.ci]
