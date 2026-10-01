@@ -1,0 +1,41 @@
+# Build context hygiene. Without this the context is ~3.8 GB, almost all of it
+# local .venv dirs that `COPY . /opt/bencher` copies in and `uv sync` then
+# overwrites. hcloud-build.sh already excludes these via rsync; a plain
+# `docker build -t bencher .` did not.
+
+# Per-package virtualenvs (~3.7 GB)
+.venv/
+*/.venv/
+
+# VCS and tooling
+.git/
+.gitignore
+.github/
+.ruff_cache/
+*/.ruff_cache/
+.idea/
+*.iml
+
+# Python build/caches
+__pycache__/
+*/__pycache__/
+**/__pycache__/
+*.py[cod]
+*/dist/
+*/build/
+*.egg-info/
+
+# Tests are not needed inside the runtime image
+tests/
+*/tests/
+
+# Datasets a developer's local run fetches into the tree. The image downloads
+# these itself in the datasets stage; shipping a local copy would bloat the
+# context and invalidate that layer.
+*/src/data/
+
+# Docs and local scratch
+*.md
+!README.md
+BROKEN_Dockerfile_arm64
+hcloud-build.sh

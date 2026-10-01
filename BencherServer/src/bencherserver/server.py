@@ -78,8 +78,11 @@ class BencherServer(BencherServicer):
         try:
             response = stub.evaluate_point(request)
         except grpc.RpcError as e:
-            stack_trace = traceback.format_exc()
-            context.set_details(stack_trace)
-            context.set_code(grpc.StatusCode.INTERNAL)
+            # context is optional (in-process callers pass None). Dereferencing
+            # it unconditionally replaced the real gRPC error with an
+            # AttributeError, hiding which service actually failed.
+            if context is not None:
+                context.set_details(traceback.format_exc())
+                context.set_code(grpc.StatusCode.INTERNAL)
             raise e
         return response

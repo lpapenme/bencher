@@ -1,2 +1,11 @@
 # ignore intellij iml files
 *.iml
+# Benchmark datasets fetched at runtime (MaxSAT corpora land here)
+*/src/data/
+
+# Per-package virtualenvs and tool caches
+.venv/
+*/.venv/
+.ruff_cache/
+*/.ruff_cache/
+__pycache__/

@@ -3,38 +3,28 @@ From: docker.papenmeier.io/bencher:latest
 Namespace:
 Stage: build
 
+# An Apptainer/Singularity definition for the benchmark server, bootstrapped
+# from the published Docker image so both runtimes ship the same bytes.
+#
+# Adapt this for your own optimizer: bootstrap from gaunab/bencher:latest, clone
+# your repository in %post, and point %runscript at your entry point. The server
+# itself needs nothing beyond what the base image provides -- %startscript below
+# is the whole of it.
+
 %environment
     export LANG=C.UTF-8
-    export PATH="/root/.local/bin:$PATH"
-    export POETRY_VIRTUALENVS_PATH=/opt/virtualenvs
-    export POETRY_HOME=/opt/poetry
 
 %post
-    apt update -y
-    apt install git curl -y
-
-    cd /opt
-    export POETRY_VIRTUALENVS_PATH=/opt/virtualenvs
-    export POETRY_HOME=/opt/poetry
-    curl -sSL https://install.python-poetry.org | python3 -
-    export PATH="/opt/poetry/bin:$PATH"
-
-    pyenv global 3.11.13
-    pyenv rehash
-
-    cd /opt
-    git clone --depth 1 https://github.com/LeoIV/bencherclient.git
-    cd bencherclient
-    poetry install --no-root --with dev
-
-    # remove build dependencies
-    apt remove git curl -y
-    apt autoremove -y
-
-    # clean up
-    rm -rf /var/lib/apt/lists/*
-    rm -rf /root/.cache/pip/*
-    rm -rf /root/.cache/pypoetry/*
+    # Nothing to install. This used to clone the bencherclient repository and
+    # install Poetry so the image carried its own test harness; the end-to-end
+    # suite lives in the bencher repository now (tests/e2e), driven over gRPC
+    # from outside the container, so the image no longer needs either.
+    #
+    # It also used to run `pyenv global 3.11.13`, which was load-bearing: the
+    # entrypoint's `python3.11` is a pyenv shim and Apptainer ignores Docker's
+    # WORKDIR, so the shim had nothing to resolve from. That now lives in the
+    # Dockerfile, so it holds for any image derived from it.
+    :
 
 %startscript
     bash -c "python3.11 /entrypoint.py"
@@ -42,4 +32,4 @@ Stage: build
 %runscript
     echo "Container was created"
     echo "Arguments received: $*"
-    bash -c "PATH='/opt/poetry/bin:$PATH' cd /opt/bencherclient && PATH='/opt/poetry/bin:$PATH' poetry run $*"
+    exec "$@"

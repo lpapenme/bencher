@@ -6,8 +6,10 @@ import grpc
 import os
 from argparse import ArgumentParser
 from pathlib import Path
+from typing import Mapping
 
-from bencherscaffold.dual_stack_service import add_listen_argument, grpc_target, resolve_listen_entries
+from bencherscaffold.dual_stack_service import (_normalize_hosts, add_listen_argument,
+                                                grpc_target, resolve_listen_entries)
 from bencherscaffold.protoclasses import bencher_pb2_grpc
 
 from bencherserver.server import BencherServer
@@ -37,6 +39,61 @@ _BENCHMARK_HOST_ENV_VARS: dict[int, str] = {
     50060: 'BENCHER_BO4MOB_HOST',
 }
 
+DEFAULT_REGISTRY_PATH = Path(__file__).parent.parent.parent / 'benchmark-registry.json'
+
+
+def resolve_targets(
+        benchmark_names_to_properties: dict,
+        env: Mapping[str, str] | None = None,
+) -> dict[tuple[str, int], list[str]]:
+    """Group registry entries by the (host, port) that serves them.
+
+    Extracted from serve() so the env-var override logic is testable: it used to
+    sit inline above a blocking server start, which meant nothing could exercise
+    it. Two details worth knowing --
+
+    * the host env var is looked up by the entry's *original* port, because
+      `port` may already have been overridden above;
+    * `resolve_listen_entries(...)` may return several hosts but only the first
+      is used here, so a comma-separated BENCHER_*_HOST collapses to one target.
+    """
+    env = os.environ if env is None else env
+    targets_to_benchmarks: dict[tuple[str, int], list[str]] = defaultdict(list)
+
+    for benchmark_name, properties in benchmark_names_to_properties.items():
+        port = properties['port']
+        env_var = _BENCHMARK_PORT_ENV_VARS.get(port)
+        if env_var:
+            port = int(env.get(env_var, port))
+        host = properties.get('host', 'localhost')
+        host_env_var = _BENCHMARK_HOST_ENV_VARS.get(properties['port'])
+        if host_env_var and host_env_var in env:
+            host = _normalize_hosts(env[host_env_var].split(","))[0]
+        targets_to_benchmarks[(host, port)].append(benchmark_name)
+
+    return dict(targets_to_benchmarks)
+
+
+def load_registry(registry_path: Path | None = None) -> dict:
+    with open(registry_path or DEFAULT_REGISTRY_PATH, 'r') as f:
+        return json.load(f)
+
+
+def build_server(
+        registry: dict | None = None,
+        env: Mapping[str, str] | None = None,
+        announce: bool = True,
+) -> BencherServer:
+    """A BencherServer with one stub registered per (host, port) target."""
+    server = BencherServer()
+    for (host, port), benchmarks in resolve_targets(
+            registry if registry is not None else load_registry(), env).items():
+        if announce:
+            print(f"registering {benchmarks} on {grpc_target(host, port)}")
+        server.register_stub(benchmarks, host, port)
+    return server
+
+
 def serve():
     argparse = ArgumentParser()
     argparse.add_argument(
@@ -65,29 +122,7 @@ def serve():
     )
     args = argparse.parse_args()
 
-    bencher_server = BencherServer()
-
-    file_path = Path(__file__).parent.parent.parent / 'benchmark-registry.json'
-    with open(file_path, 'r') as f:
-        benchmark_names_to_properties = json.load(f)
-
-    # structure: {benchmark_name: {port: int, dimensions: int}}
-    targets_to_benchmarks: dict[tuple[str, int], list[str]] = defaultdict(list)
-
-    for benchmark_name, properties in benchmark_names_to_properties.items():
-        port = properties['port']
-        env_var = _BENCHMARK_PORT_ENV_VARS.get(port)
-        if env_var:
-            port = int(os.environ.get(env_var, port))
-        host = properties.get('host', 'localhost')
-        host_env_var = _BENCHMARK_HOST_ENV_VARS.get(properties['port'])
-        if host_env_var:
-            host = resolve_listen_entries(None, env_var=host_env_var, default=(host,))[0]
-        targets_to_benchmarks[(host, port)].append(benchmark_name)
-
-    for (host, port), benchmarks in targets_to_benchmarks.items():
-        print(f"registering {benchmarks} on {grpc_target(host, port)}")
-        bencher_server.register_stub(benchmarks, host, port)
+    bencher_server = build_server()
 
     port = str(args.port)
     listen_addresses = resolve_listen_entries(args.listen_addresses, env_var='BENCHER_SERVER_HOST')
