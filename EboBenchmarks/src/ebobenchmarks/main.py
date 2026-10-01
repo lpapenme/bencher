@@ -72,7 +72,8 @@ class EboServiceServicer(DualStackGRCPService):
             context
     ) -> EvaluationResult:
         x = np.array([v.value for v in request.point.values])
-        value = self.evaluate(request.benchmark.name, x)
+        seed = request.random_seed if request.HasField('random_seed') else None
+        value = self.evaluate(request.benchmark.name, x, seed=seed)
         return EvaluationResult(
             objectives=[ObjectiveValue(name="f0", value=value)],
         )
@@ -86,9 +87,9 @@ class EboServiceServicer(DualStackGRCPService):
         """Evaluate a point given in [0, 1]^d; returns a cost (negated reward).
 
         Split out of evaluate_point so the rescaling and shape checks are
-        testable without a gRPC server. Both simulators are stochastic; `seed`
-        is threaded through for reproducibility once the services accept
-        BenchmarkRequest.random_seed.
+        testable without a gRPC server. Both simulators are stochastic: pass a
+        `seed` to make the value reproducible, or None for the original
+        unseeded behaviour.
         """
         if name not in BENCHMARKS:
             raise ValueError(
@@ -104,10 +105,10 @@ class EboServiceServicer(DualStackGRCPService):
             ub = np.array(self.push_reward.xmax)
             # x is in [0, 1] space, so we need to scale it to the domain
             x = lb + (ub - lb) * x
-            return -self.push_reward(x)
+            return -self.push_reward(x, seed=seed)
 
         # bounds are [0, 1] for the rover, so we don't need to scale
-        return -self.rover_domain(x)
+        return -self.rover_domain(x, seed=seed)
 
 
 def serve():

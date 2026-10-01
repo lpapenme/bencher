@@ -1,16 +1,14 @@
-"""Tier 1 for EboBenchmarks: dispatch and dimension validation.
+"""Tier 1 for EboBenchmarks: dispatch, dimension validation, and seeding."""
 
-Both benchmarks are stochastic simulators, so no value can be pinned until
-random_seed is threaded through. What can be tested cheaply is everything before
-the rollout -- and it is testable at all only because the simulators are now
-built lazily: `__init__` used to construct PushReward and a 60-D rover domain
-eagerly, so the servicer could not be created without the full `ebo` stack
-working.
-"""
 import numpy as np
 import pytest
-
 from ebobenchmarks.main import BENCHMARKS, EboServiceServicer
+
+SEED_POINTS = {
+    "robotpushing": np.random.default_rng(0).uniform(size=14),
+    "rover": np.random.default_rng(0).uniform(size=60),
+}
+SEED = 7
 
 
 @pytest.fixture
@@ -43,8 +41,29 @@ def test_wrong_dimensionality_is_rejected(servicer, name, dimensions):
         servicer.evaluate(name, np.full(dimensions + 1, 0.5))
 
 
-@pytest.mark.dataset
 @pytest.mark.parametrize("name,dimensions", [("robotpushing", 14), ("rover", 60)])
 def test_benchmark_evaluates(servicer, name, dimensions):
     """Builds the simulator, so it only runs where `ebo` is fully working."""
     assert np.isfinite(servicer.evaluate(name, np.full(dimensions, 0.5)))
+
+
+@pytest.mark.parametrize("name", sorted(SEED_POINTS))
+def test_a_seed_makes_an_evaluation_reproducible(servicer, name):
+    x = SEED_POINTS[name]
+    assert servicer.evaluate(name, x, seed=SEED) == servicer.evaluate(
+        name, x, seed=SEED
+    )
+
+
+@pytest.mark.parametrize("name", sorted(SEED_POINTS))
+def test_different_seeds_give_different_evaluations(servicer, name):
+    x = SEED_POINTS[name]
+    assert servicer.evaluate(name, x, seed=SEED) != servicer.evaluate(
+        name, x, seed=SEED + 1
+    )
+
+
+@pytest.mark.parametrize("name", sorted(SEED_POINTS))
+def test_without_a_seed_the_evaluation_still_varies(servicer, name):
+    x = SEED_POINTS[name]
+    assert servicer.evaluate(name, x) != servicer.evaluate(name, x)

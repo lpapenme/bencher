@@ -152,7 +152,7 @@ wheels = [
 [[package]]
 name = "ebo"
 version = "0.0.8"
-source = { git = "https://github.com/LeoIV/Ensemble-Bayesian-Optimization.git#43952f5c814c04f74b954f684fbe47e658ca8c67" }
+source = { git = "https://github.com/lpapenme/Ensemble-Bayesian-Optimization.git#b907eee1632dc25267d057f970fd30256761c7ef" }
 dependencies = [
     { name = "azure-storage" },
     { name = "box2d" },
@@ -184,7 +184,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "bencherscaffold", specifier = "~=0.6.4" },
-    { name = "ebo", git = "https://github.com/LeoIV/Ensemble-Bayesian-Optimization.git" },
+    { name = "ebo", git = "https://github.com/lpapenme/Ensemble-Bayesian-Optimization.git" },
     { name = "numpy", specifier = ">=1.20.1,<2" },
 ]
 

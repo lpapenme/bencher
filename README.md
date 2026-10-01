@@ -277,9 +277,8 @@ marks them. `BenchmarkRequest` carries an optional `random_seed` (bencherscaffol
 client.evaluate_point(benchmark_name='mujoco-swimmer', point=point, random_seed=7)
 ```
 
-Today **only the MuJoCo family and `lunarlander` honour it.** `pestcontrol`,
-`rover` and `robotpushing` are still stochastic with no way to seed them through
-the API, so repeated calls will differ. Seeding those is open work.
+Note - `pestcontrol` is still stochastic with no way to seed it through
+the API, so repeated calls will differ. Seeding it is open work.
 
 **Seeded rollouts are reproducible on one machine, not across architectures.**
 The physics simulations amplify floating-point differences, so the same seed on
