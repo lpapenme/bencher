@@ -287,7 +287,6 @@ linux/amd64 container at seed 7:
 
 | benchmark | arm64 | linux/amd64 |
 |---|---|---|
-| `lunarlander` | 87.79251775658189 | 87.79232914609621 |
 | `mujoco-hopper` | -145.43122334242307 | -146.28735420150608 |
 | `mujoco-walker` | 4.309704043416025 | **-1.7118133581203339** |
 
@@ -318,7 +317,7 @@ The following benchmarks are available:
 | maxsat60                   | 60           | binary      | [^6],[^7]      | &#x2612; |
 | maxsat125                  | 125          | binary      | [^7]           | &#x2612; |
 | robotpushing               | 14           | continuous  | [^3]           | &#x2611; |
-| lunarlander                | 12           | continuous  | [^3]           | &#x2611; |
+| lunarlander                | 12           | continuous  | [^3]           | &#x2612; |
 | rover                      | 60           | continuous  | [^3]           | &#x2611; |
 | mujoco-ant                 | 888          | continuous  | [^9],[^5]      | &#x2611; |
 | mujoco-hopper              | 33           | continuous  | [^9],[^5]      | &#x2611; |

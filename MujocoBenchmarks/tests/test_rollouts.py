@@ -27,7 +27,11 @@ import numpy as np
 import pytest
 
 from conftest import GOLDEN_SEED, goldens_store, point_for
-from mujocobenchmarks.main import BENCHMARKS
+from mujocobenchmarks.main import BENCHMARKS, MujocoServiceServicer
+
+# lunarlander always runs the same 50 episodes (as in TuRBO), so it ignores the
+# seed and the two tests below do not apply.
+DETERMINISTIC = {"lunarlander"}
 
 
 def test_a_seed_makes_a_rollout_reproducible(servicer, name):
@@ -51,6 +55,8 @@ def test_different_seeds_give_different_rollouts(servicer, name):
     so it passes for the wrong reason. That case is caught by the
     reproducibility test above.
     """
+    if name in DETERMINISTIC:
+        pytest.skip(f"{name} is deterministic")
     x = point_for(name)
     assert servicer.evaluate(name, x, seed=GOLDEN_SEED) != \
            servicer.evaluate(name, x, seed=GOLDEN_SEED + 1)
@@ -58,6 +64,8 @@ def test_different_seeds_give_different_rollouts(servicer, name):
 
 def test_without_a_seed_the_rollout_still_varies(servicer, name):
     """Seeding is optional; omitting it must not silently fix the seed."""
+    if name in DETERMINISTIC:
+        pytest.skip(f"{name} is deterministic")
     x = point_for(name)
     assert servicer.evaluate(name, x) != servicer.evaluate(name, x)
 
@@ -102,7 +110,7 @@ EXPECTED_BOUNDS = {
     "mujoco-halfcheetah": (-1, 1),
     "mujoco-swimmer": (-1, 1),
     "mujoco-humanoid": (-1, 1),
-    "lunarlander": None,          # a gym environment, no rescaling
+    "lunarlander": (0, 2),        # as in TuRBO
 }
 
 
@@ -133,11 +141,12 @@ def test_the_point_is_rescaled_onto_the_benchmarks_bounds(monkeypatch, servicer,
     wrong or transposed bound changes every value the benchmark ever returns --
     and unlike a golden it is identical on every architecture.
     """
-    if BENCHMARKS[name]["factory"] is None:
-        pytest.skip(f"{name} is a gym environment, not a bounded rollout")
-
     recorder = _RecordingRollout()
-    monkeypatch.setitem(BENCHMARKS[name], "factory", lambda: recorder)
+    if BENCHMARKS[name]["factory"] is None:
+        monkeypatch.setattr(MujocoServiceServicer, "_lunarlander_reward",
+                            staticmethod(lambda x: recorder(x)[0, 0]))
+    else:
+        monkeypatch.setitem(BENCHMARKS[name], "factory", lambda: recorder)
 
     servicer.evaluate(name, np.full(BENCHMARKS[name]["dimensions"], fill), seed=GOLDEN_SEED)
 
@@ -146,4 +155,10 @@ def test_the_point_is_rescaled_onto_the_benchmarks_bounds(monkeypatch, servicer,
     lower, upper = EXPECTED_BOUNDS[name]
     expected = {"lower": lower, "upper": upper, "centre": (lower + upper) / 2}[position]
     assert recorder.x == pytest.approx(np.full_like(recorder.x, expected))
-    assert recorder.seed == GOLDEN_SEED, "the seed must reach the rollout"
+    if BENCHMARKS[name]["factory"] is not None:
+        assert recorder.seed == GOLDEN_SEED, "the seed must reach the rollout"
+
+
+def test_lunarlander_is_deterministic(servicer):
+    assert servicer.evaluate("lunarlander", point_for("lunarlander")) == \
+           servicer.evaluate("lunarlander", point_for("lunarlander"))
