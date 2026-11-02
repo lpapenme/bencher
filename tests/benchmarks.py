@@ -36,7 +36,6 @@ STOCHASTIC = {
     "pestcontrol",
     "rover",
     "robotpushing",
-    "lunarlander",
     "mujoco-ant", "mujoco-hopper", "mujoco-walker",
     "mujoco-halfcheetah", "mujoco-swimmer", "mujoco-humanoid",
 }

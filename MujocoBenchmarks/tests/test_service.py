@@ -17,11 +17,8 @@ from grpc_harness import request_for, second_level_service  # noqa: E402
 
 from mujocobenchmarks.main import MujocoServiceServicer  # noqa: E402
 
-# Two code paths live behind this service and they seed differently:
-# lunarlander runs a gym episode, everything else goes through a MuJoCo rollout
-# factory. Testing only one hides a regression in the other -- the seed-drop bug
-# was on the factory path, and a lunarlander-only test passed straight through
-# it. `mujoco-swimmer` is the cheapest factory-path benchmark.
+# Only the MuJoCo rollouts are seeded; lunarlander always runs the same episodes.
+# Out of all of these, `mujoco-swimmer` is the cheapest.
 BENCHMARK = "mujoco-swimmer"
 DIMENSIONS = 16
 VALUE_TYPE = ValueType.CONTINUOUS
@@ -29,7 +26,6 @@ FILL = 0.5
 
 SEEDED_BENCHMARKS = [
     ("mujoco-swimmer", 16),   # factory path
-    ("lunarlander", 12),      # gym path
 ]
 
 

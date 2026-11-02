@@ -10,12 +10,16 @@ from typing import Optional
 
 import gym
 import numpy as np
+from gym.envs.box2d import lunar_lander
 from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 
 from mujocobenchmarks.functions import func_factories
 
 LISTEN_HOST_ENV_VAR = 'BENCHER_MUJOCO_HOST'
+# lunarlander follows TuRBO: average over 50 fixed episodes, harder initial push
+LUNARLANDER_SEEDS = range(50)
+lunar_lander.INITIAL_RANDOM = 1500.0
 # The benchmarks this service serves, as data. `bounds` is the native domain a
 # point in [0, 1]^d is mapped onto; `factory` builds the MuJoCo rollout. The
 # lunarlander entry has no factory -- it is a gym environment, handled below --
@@ -41,7 +45,7 @@ BENCHMARKS = {
         'dimensions': 6392, 'type': 'purely_continuous', 'bounds': (-1, 1),
         'factory': lambda: func_factories["humanoid"].make_object()},
     'lunarlander': {
-        'dimensions': 12, 'type': 'purely_continuous', 'bounds': None,
+        'dimensions': 12, 'type': 'purely_continuous', 'bounds': (0, 2),
         'factory': None},
 }
 
@@ -104,42 +108,49 @@ class MujocoServiceServicer(DualStackGRCPService):
         """Evaluate a point given in [0, 1]^d; returns a cost (negated reward).
 
         Split out of evaluate_point so the per-benchmark rescaling is testable
-        without standing up a gRPC server. Both the MuJoCo rollouts and the gym
-        LunarLander episode are stochastic; `seed` is threaded through for
-        reproducibility once the services accept BenchmarkRequest.random_seed.
+        without standing up a gRPC server. The MuJoCo rollouts are stochastic;
+        `seed` is threaded through for reproducibility. lunarlander always
+        runs the same episodes, so it is deterministic and ignores `seed`.
         """
         if name not in BENCHMARKS:
             raise ValueError("Invalid benchmark name")
         spec = BENCHMARKS[name]
         x = np.array(x).reshape(1, -1)
 
+        # x is in [0, 1] space, so we need to map it to the benchmark space
+        lb, ub = spec['bounds']
+        x = lb + (ub - lb) * x
+
         if spec['factory'] is not None:
-            # x is in [0, 1] space, we need to map it to the benchmark space
-            lb, ub = spec['bounds']
-            x = lb + (ub - lb) * x
             # The seed must reach the rollout: functions.py spawns one child
             # seed per rollout from it. Dropping it here silently made every
             # MuJoCo benchmark non-reproducible while lunarlander looked fine.
             return -float(spec['factory']()(x, seed=seed)[0].squeeze())
 
-        return -self._lunarlander_reward(x.squeeze(), seed=seed)
+        return -self._lunarlander_reward(x.squeeze())
 
     @staticmethod
-    def _lunarlander_reward(weights: np.ndarray, seed: Optional[int] = None) -> float:
-        """Total reward of one LunarLander episode under a heuristic controller."""
+    def _lunarlander_reward(weights: np.ndarray) -> float:
+        """Average reward of the LunarLander episodes under a heuristic controller."""
         env = gym.make("LunarLander-v2")
         try:
-            total_reward = 0
-            s = env.reset() if seed is None else env.reset(seed=seed)
-            while True:
-                a = heuristic_controller(s, weights)
-                s, r, terminated, _ = env.step(a)
-                total_reward += r
-                if terminated:
-                    break
+            rewards = []
+            for seed in LUNARLANDER_SEEDS:
+                total_reward = 0
+                s = env.reset(seed=seed)
+                while True:
+                    a = heuristic_controller(s, weights)
+                    s, r, terminated, info = env.step(a)
+                    if info.get("TimeLimit.truncated", False):
+                        # not landed after 1000 steps: scored as a crash (similar to gym)
+                        r = -100
+                    total_reward += r
+                    if terminated:
+                        break
+                rewards.append(total_reward)
         finally:
             env.close()
-        return total_reward
+        return float(np.mean(rewards))
 
 
 def serve():

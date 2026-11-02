@@ -107,8 +107,11 @@ class EboServiceServicer(DualStackGRCPService):
             x = lb + (ub - lb) * x
             return -self.push_reward(x, seed=seed)
 
-        # bounds are [0, 1] for the rover, so we don't need to scale
-        return -self.rover_domain(x, seed=seed)
+        # x is in [0, 1] space, so we need to scale it to the domain (as in EBO)
+        x_range = np.repeat(self.rover_domain.s_range, self.rover_domain.traj.npoints, axis=1)
+        x = x_range[0] + (x_range[1] - x_range[0]) * x
+        # EBO adds a constant offset of 5 to the rover reward
+        return -(self.rover_domain(x, seed=seed) + 5)
 
 
 def serve():
