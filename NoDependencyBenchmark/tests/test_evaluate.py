@@ -6,7 +6,7 @@ business being unreachable on an arm64 laptop.
 """
 import numpy as np
 import pytest
-from bencherscaffold.protoclasses.bencher_pb2 import EvaluationResult
+from bencherscaffold.protoclasses.bencher_pb2 import ConstraintType, EvaluationResult
 
 from nodependencybenchmark.main import (BENCHMARKS, NoDependencyServiceServicer,
                                         _pest_control_score, mopta_executable_basename)
@@ -23,7 +23,7 @@ def test_servicer_constructs_on_any_architecture(servicer):
 
 
 def test_registry_shape_is_declared():
-    assert set(BENCHMARKS) == {"mopta08", "pestcontrol"}
+    assert set(BENCHMARKS) == {"mopta08", "pestcontrol", "gramacy"}
     assert BENCHMARKS["pestcontrol"]["dimensions"] == 25
 
 
@@ -83,3 +83,37 @@ class TestDispatch:
             dimensions = BENCHMARKS[name]["dimensions"]
             result = servicer.evaluate(name, np.zeros(dimensions, dtype=int), seed=0)
             assert isinstance(result, EvaluationResult)
+
+
+class TestGramacy:
+    @pytest.mark.parametrize("x, f, g1, g2", [
+        ((0.5, 0.5), 1.0, -0.5, -1.0),  # feasible
+        ((0.0, 0.0), 0.0, 1.5, -1.5),  # violates g1 only
+        ((1.0, 1.0), 2.0, -1.5, 0.5),  # violates g2 only
+    ])
+    def test_known_values(self, servicer, x, f, g1, g2):
+        result = servicer.evaluate("gramacy", np.array(x))
+        assert result.objectives[0].value == pytest.approx(f)
+        assert [c.value for c in result.constraints] == pytest.approx([g1, g2])
+
+    @pytest.mark.parametrize("x, f", [
+        ((0.1954, 0.4044), 0.5998),  # x^A, the global minimizer
+        ((0.7197, 0.1411), 0.8609),  # x^B
+        ((0.0, 0.75), 0.75),  # x^C, also bound by x1 >= 0
+    ])
+    def test_published_local_optima_lie_on_g1(self, servicer, x, f):
+        """Gramacy et al. (2016), Fig. 1: g1 is active and g2 strictly satisfied
+        at every local minimizer."""
+        result = servicer.evaluate("gramacy", np.array(x))
+        assert result.objectives[0].value == pytest.approx(f, abs=1e-4)
+        g1, g2 = (c.value for c in result.constraints)
+        assert abs(g1) < 1e-3 and g2 < 0
+
+    def test_constraints_are_named_inequalities(self, servicer):
+        result = servicer.evaluate("gramacy", np.array([0.5, 0.5]))
+        assert [c.name for c in result.constraints] == ["g1", "g2"]
+        assert all(c.type == ConstraintType.INEQUALITY for c in result.constraints)
+
+    def test_wrong_dimension_is_rejected(self, servicer):
+        with pytest.raises(ValueError, match="does not match expected shape"):
+            servicer.evaluate("gramacy", np.ones(3))

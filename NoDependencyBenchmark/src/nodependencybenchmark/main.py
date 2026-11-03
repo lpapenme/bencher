@@ -7,7 +7,8 @@ import tempfile
 from argparse import ArgumentParser
 from platform import machine
 
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
+from bencherscaffold.protoclasses.bencher_pb2 import (BenchmarkRequest, Constraint, ConstraintType,
+                                                     EvaluationResult, ObjectiveValue)
 from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
 
 LISTEN_HOST_ENV_VAR = 'BENCHER_NODEP_HOST'
@@ -26,6 +27,7 @@ else:
 BENCHMARKS = {
     'mopta08': {'dimensions': 124, 'type': 'purely_continuous'},
     'pestcontrol': {'dimensions': 25, 'type': 'purely_categorical'},
+    'gramacy': {'dimensions': 2, 'type': 'purely_continuous'},
 }
 
 SUPPORTED_BENCHMARKS = list(BENCHMARKS)
@@ -108,6 +110,27 @@ def _pest_control_score(
 
     return EvaluationResult(
         objectives=[ObjectiveValue(name="f0", value=float(payed_price_sum + above_threshold))],
+    )
+
+
+def _gramacy(
+        x: np.ndarray
+) -> EvaluationResult:
+    """Toy problem of Gramacy et al. (2016), https://doi.org/10.48550/arXiv.1403.4890
+
+    min x1 + x2 over [0, 1]^2 subject to g1(x) <= 0 and g2(x) <= 0.
+    """
+    f = float(np.sum(x))
+
+    g1 = 1.5 - x[0] - 2 * x[1] - 0.5 * np.sin(2 * np.pi * (x[0] ** 2 - 2 * x[1]))
+    g2 = x[0] ** 2 + x[1] ** 2 - 1.5
+
+    return EvaluationResult(
+        objectives=[ObjectiveValue(name="f0", value=f)],
+        constraints=[
+            Constraint(name="g1", type=ConstraintType.INEQUALITY, value=float(g1)),
+            Constraint(name="g2", type=ConstraintType.INEQUALITY, value=float(g2)),
+        ],
     )
 
 
@@ -246,6 +269,12 @@ class NoDependencyServiceServicer(DualStackGRCPService):
             return self.eval_mopta08(x)
         if name == "pestcontrol":
             return _pest_control_score(x, seed=seed)
+        if name == "gramacy":
+            # gramacy is in [0, 1]^2 so we don't need to scale
+            expected_shape = (BENCHMARKS["gramacy"]["dimensions"],)
+            if x.shape != expected_shape:
+                raise ValueError(f"Input shape {x.shape} does not match expected shape {expected_shape}")
+            return _gramacy(x)
         raise NotImplementedError(f"{name!r} is declared in BENCHMARKS but has no dispatch")
 
     def eval_mopta08(
