@@ -49,7 +49,7 @@ def _pest_spread(
 def _pest_control_score(
         x: np.ndarray,
         seed=None
-):
+) -> EvaluationResult:
     U = 0.1
     n_stages = x.size
     n_simulations = 100
@@ -106,7 +106,9 @@ def _pest_control_score(
         above_threshold += np.mean(curr_pest_frac > U)
         curr_pest_frac = next_pest_frac
 
-    return payed_price_sum + above_threshold
+    return EvaluationResult(
+        objectives=[ObjectiveValue(name="f0", value=float(payed_price_sum + above_threshold))],
+    )
 
 
 def download_mopta_executable(
@@ -215,22 +217,24 @@ class NoDependencyServiceServicer(DualStackGRCPService):
 
         """
         x = np.array([v.value for v in request.point.values])
-        value = self.evaluate(request.benchmark.name, x)
-        return EvaluationResult(
-            objectives=[ObjectiveValue(name="f0", value=value)],
-        )
+        seed = request.random_seed if request.HasField("random_seed") else None
+        return self.evaluate(request.benchmark.name, x, seed=seed)
 
     def evaluate(
             self,
             name: str,
             x: np.ndarray,
             seed: int | None = None
-    ) -> float:
+    ) -> EvaluationResult:
         """Evaluate a point in the benchmark's native domain.
 
         Split out of evaluate_point so normalisation and dispatch can be tested
         without standing up a gRPC server. `seed` is accepted for the benchmarks
         that are stochastic; it is threaded from BenchmarkRequest.random_seed.
+
+        Every benchmark builds its own EvaluationResult. Constrained benchmarks
+        fill `constraints`; inequality constraints are feasible iff value <= 0.
+        Unconstrained benchmarks leave the field unset, which protobuf reads as empty.
         """
         if name not in BENCHMARKS:
             raise ValueError(
@@ -240,19 +244,21 @@ class NoDependencyServiceServicer(DualStackGRCPService):
             # mopta is in [0, 1]^n so we don't need to scale
             download_mopta_executable(self._mopta_exectutable_basename)
             return self.eval_mopta08(x)
-        return _pest_control_score(x, seed=seed)
+        if name == "pestcontrol":
+            return _pest_control_score(x, seed=seed)
+        raise NotImplementedError(f"{name!r} is declared in BENCHMARKS but has no dispatch")
 
     def eval_mopta08(
             self,
             x: np.ndarray
-    ) -> float:
+    ) -> EvaluationResult:
         """
         Evaluate the function with the given input.
 
         :param x: Input array.
         :type x: np.ndarray
         :return: The evaluated result.
-        :rtype: float
+        :rtype: EvaluationResult
         """
         x = x.squeeze()
         assert x.ndim == 1
@@ -278,7 +284,8 @@ class NoDependencyServiceServicer(DualStackGRCPService):
         value = output[0]
         constraints = output[1:]
         # see https://arxiv.org/pdf/2103.00349.pdf E.7
-        return float(value + 10 * np.sum(np.clip(constraints, a_min=0, a_max=None)))
+        value = float(value + 10 * np.sum(np.clip(constraints, a_min=0, a_max=None)))
+        return EvaluationResult(objectives=[ObjectiveValue(name="f0", value=value)])
 
 
 def serve():

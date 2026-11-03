@@ -6,6 +6,7 @@ business being unreachable on an arm64 laptop.
 """
 import numpy as np
 import pytest
+from bencherscaffold.protoclasses.bencher_pb2 import EvaluationResult
 
 from nodependencybenchmark.main import (BENCHMARKS, NoDependencyServiceServicer,
                                         _pest_control_score, mopta_executable_basename)
@@ -39,19 +40,25 @@ class TestPestControl:
         assert servicer.evaluate("pestcontrol", x, seed=1) != \
                servicer.evaluate("pestcontrol", x, seed=2)
 
-    def test_returns_a_finite_scalar(self, servicer):
-        value = servicer.evaluate("pestcontrol", np.ones(25), seed=0)
-        assert isinstance(value, float) and np.isfinite(value)
+    def test_returns_a_single_finite_objective(self, servicer):
+        result = servicer.evaluate("pestcontrol", np.ones(25), seed=0)
+        assert isinstance(result, EvaluationResult)
+        assert [o.name for o in result.objectives] == ["f0"]
+        assert np.isfinite(result.objectives[0].value)
+
+    def test_is_unconstrained(self, servicer):
+        result = servicer.evaluate("pestcontrol", np.ones(25), seed=0)
+        assert len(result.constraints) == 0
 
     @pytest.mark.parametrize("category", [0, 1, 2, 3, 4])
     def test_accepts_every_valid_category(self, servicer, category):
         """Values are used directly as categorical indices, 0 (no control) to 4."""
-        value = servicer.evaluate("pestcontrol", np.full(25, category), seed=3)
-        assert np.isfinite(value)
+        result = servicer.evaluate("pestcontrol", np.full(25, category), seed=3)
+        assert np.isfinite(result.objectives[0].value)
 
     def test_all_zero_means_no_control_is_applied(self):
         """With no pesticide applied, nothing is paid for control."""
-        assert np.isfinite(_pest_control_score(np.zeros(25), seed=1))
+        assert np.isfinite(_pest_control_score(np.zeros(25), seed=1).objectives[0].value)
 
 
 class TestDispatch:
@@ -67,3 +74,12 @@ class TestDispatch:
         else:
             with pytest.raises(RuntimeError, match="no executable for architecture"):
                 mopta_executable_basename()
+
+    def test_every_declared_benchmark_is_dispatched(self, servicer):
+        """A name added to BENCHMARKS without a branch must not fall through silently."""
+        for name in BENCHMARKS:
+            if name == "mopta08":
+                continue  # needs the x86 binary; covered by the e2e tier
+            dimensions = BENCHMARKS[name]["dimensions"]
+            result = servicer.evaluate(name, np.zeros(dimensions, dtype=int), seed=0)
+            assert isinstance(result, EvaluationResult)
