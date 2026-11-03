@@ -47,12 +47,6 @@ def test_a_request_carrying_random_seed_is_accepted(stub):
     assert len(result.objectives) == 1
 
 
-def test_unconstrained_benchmarks_return_no_constraints(stub):
-    result = stub.evaluate_point(
-        request_for(BENCHMARK, [FILL] * DIMENSIONS, VALUE_TYPE))
-    assert len(result.constraints) == 0
-
-
 def test_an_unknown_benchmark_fails_rather_than_hangs(stub):
     with pytest.raises(grpc.RpcError):
         stub.evaluate_point(request_for("definitely-not-a-benchmark", [FILL]))

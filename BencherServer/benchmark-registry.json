@@ -54,6 +54,11 @@
     "dimensions": 25,
     "type": "purely_categorical"
   },
+  "gramacy": {
+    "port": 50054,
+    "dimensions": 2,
+    "type": "purely_continuous"
+  },
   "maxsat60": {
     "port": 50055,
     "dimensions": 60,
