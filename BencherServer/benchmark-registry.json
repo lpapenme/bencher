@@ -2498,5 +2498,10 @@
     "port": 50060,
     "dimensions": 10100,
     "type": "purely_integer"
+  },
+  "gramacy": {
+    "port": 50054,
+    "dimensions": 2,
+    "type": "purely_continuous"
   }
 }
