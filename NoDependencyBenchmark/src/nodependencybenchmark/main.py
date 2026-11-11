@@ -7,10 +7,20 @@ import tempfile
 from argparse import ArgumentParser
 from platform import machine
 
-from bencherscaffold.protoclasses.bencher_pb2 import BenchmarkRequest, EvaluationResult, ObjectiveValue
-from bencherscaffold.dual_stack_service import DualStackGRCPService, add_listen_argument, resolve_listen_entries
+from bencherscaffold.protoclasses.bencher_pb2 import (
+    BenchmarkRequest,
+    Constraint,
+    ConstraintType,
+    EvaluationResult,
+    ObjectiveValue,
+)
+from bencherscaffold.dual_stack_service import (
+    DualStackGRCPService,
+    add_listen_argument,
+    resolve_listen_entries,
+)
 
-LISTEN_HOST_ENV_VAR = 'BENCHER_NODEP_HOST'
+LISTEN_HOST_ENV_VAR = "BENCHER_NODEP_HOST"
 _env_directory = os.environ.get("MOPTA_DATA_DIR")
 if _env_directory:
     os.makedirs(_env_directory, exist_ok=True)
@@ -24,8 +34,9 @@ else:
 # service keeps benchmark-registry.json checkable without importing anything
 # (see tests/test_registry.py).
 BENCHMARKS = {
-    'mopta08': {'dimensions': 124, 'type': 'purely_continuous'},
-    'pestcontrol': {'dimensions': 25, 'type': 'purely_categorical'},
+    "mopta08": {"dimensions": 124, "type": "purely_continuous"},
+    "pestcontrol": {"dimensions": 25, "type": "purely_categorical"},
+    "gramacy": {"dimensions": 2, "type": "purely_continuous"},
 }
 
 SUPPORTED_BENCHMARKS = list(BENCHMARKS)
@@ -33,12 +44,8 @@ SUPPORTED_BENCHMARKS = list(BENCHMARKS)
 
 # Source: https://github.com/aryandeshwal/BODi/blob/main/bodi/pestcontrol.py
 
-def _pest_spread(
-        curr_pest_frac,
-        spread_rate,
-        control_rate,
-        apply_control
-):
+
+def _pest_spread(curr_pest_frac, spread_rate, control_rate, apply_control):
     if apply_control:
         next_pest_frac = (1.0 - control_rate) * curr_pest_frac
     else:
@@ -46,10 +53,7 @@ def _pest_spread(
     return next_pest_frac
 
 
-def _pest_control_score(
-        x: np.ndarray,
-        seed=None
-):
+def _pest_control_score(x: np.ndarray, seed=None) -> EvaluationResult:
     U = 0.1
     n_stages = x.size
     n_simulations = 100
@@ -66,51 +70,84 @@ def _pest_control_score(
     # below two changes over stages according to x
     control_beta = {1: 2.0 / 7.0, 2: 3.0 / 7.0, 3: 3.0 / 7.0, 4: 5.0 / 7.0}
 
-    payed_price_sum = 0
+    paid_price_sum = 0
     above_threshold = 0
 
     if seed is not None:
         init_pest_frac = np.random.RandomState(seed).beta(
-            init_pest_frac_alpha,
-            init_pest_frac_beta,
-            size=(n_simulations,)
+            init_pest_frac_alpha, init_pest_frac_beta, size=(n_simulations,)
         )
     else:
-        init_pest_frac = np.random.beta(init_pest_frac_alpha, init_pest_frac_beta, size=(n_simulations,))
+        init_pest_frac = np.random.beta(
+            init_pest_frac_alpha, init_pest_frac_beta, size=(n_simulations,)
+        )
     curr_pest_frac = init_pest_frac
     for i in range(n_stages):
         if seed is not None:
-            spread_rate = np.random.RandomState(seed).beta(spread_alpha, spread_beta, size=(n_simulations,))
+            spread_rate = np.random.RandomState(seed).beta(
+                spread_alpha, spread_beta, size=(n_simulations,)
+            )
         else:
-            spread_rate = np.random.beta(spread_alpha, spread_beta, size=(n_simulations,))
+            spread_rate = np.random.beta(
+                spread_alpha, spread_beta, size=(n_simulations,)
+            )
         do_control = x[i] > 0
         if do_control:
             if seed is not None:
                 control_rate = np.random.RandomState(seed).beta(
-                    control_alpha,
-                    control_beta[x[i]],
-                    size=(n_simulations,)
+                    control_alpha, control_beta[x[i]], size=(n_simulations,)
                 )
             else:
-                control_rate = np.random.beta(control_alpha, control_beta[x[i]], size=(n_simulations,))
-            next_pest_frac = _pest_spread(curr_pest_frac, spread_rate, control_rate, True)
+                control_rate = np.random.beta(
+                    control_alpha, control_beta[x[i]], size=(n_simulations,)
+                )
+            next_pest_frac = _pest_spread(
+                curr_pest_frac, spread_rate, control_rate, True
+            )
             # torelance has been developed for pesticide type 1
             control_beta[x[i]] += tolerance_develop_rate[x[i]] / float(n_stages)
             # you will get discount
-            payed_price = control_price[x[i]] * (
-                    1.0 - control_price_max_discount[x[i]] / float(n_stages) * float(np.sum(x == x[i])))
+            paid_price = control_price[x[i]] * (
+                1.0
+                - control_price_max_discount[x[i]]
+                / float(n_stages)
+                * float(np.sum(x == x[i]))
+            )
         else:
             next_pest_frac = _pest_spread(curr_pest_frac, spread_rate, 0, False)
-            payed_price = 0
-        payed_price_sum += payed_price
+            paid_price = 0
+        paid_price_sum += paid_price
         above_threshold += np.mean(curr_pest_frac > U)
         curr_pest_frac = next_pest_frac
 
-    return payed_price_sum + above_threshold
+    return EvaluationResult(
+        objectives=[
+            ObjectiveValue(name="f0", value=float(paid_price_sum + above_threshold))
+        ],
+    )
+
+
+def _gramacy(x: np.ndarray) -> EvaluationResult:
+    """Toy problem of Gramacy et al. (2016), https://doi.org/10.48550/arXiv.1403.4890
+
+    min x1 + x2 over [0, 1]^2 subject to g0(x) <= 0 and g1(x) <= 0.
+    """
+    f = float(np.sum(x))
+
+    g0 = 1.5 - x[0] - 2 * x[1] - 0.5 * np.sin(2 * np.pi * (x[0] ** 2 - 2 * x[1]))
+    g1 = x[0] ** 2 + x[1] ** 2 - 1.5
+
+    return EvaluationResult(
+        objectives=[ObjectiveValue(name="f0", value=f)],
+        constraints=[
+            Constraint(name="g0", type=ConstraintType.INEQUALITY, value=float(g0)),
+            Constraint(name="g1", type=ConstraintType.INEQUALITY, value=float(g1)),
+        ],
+    )
 
 
 def download_mopta_executable(
-        executable_name: str,
+    executable_name: str,
 ):
     """
     Download MOPTA Executable
@@ -133,6 +170,7 @@ def download_mopta_executable(
         print(f"Downloading {url}")
 
         import requests
+
         response = requests.get(url, verify=False)
 
         with open(os.path.join(directory_name, executable_name), "wb") as file:
@@ -158,7 +196,7 @@ def mopta_executable_basename() -> str:
     Raises only when MOPTA is actually needed, so architectures without a binary
     can still serve the benchmarks that do not use one.
     """
-    sysarch = 64 if sys.maxsize > 2 ** 32 else 32
+    sysarch = 64 if sys.maxsize > 2**32 else 32
     key = (machine().lower(), sysarch)
     if key not in _MOPTA_EXECUTABLES:
         raise RuntimeError(
@@ -169,15 +207,10 @@ def mopta_executable_basename() -> str:
 
 
 class NoDependencyServiceServicer(DualStackGRCPService):
-
-    def __init__(
-            self,
-            port: int = 50054,
-            listen_hosts=None
-    ):
+    def __init__(self, port: int = 50054, listen_hosts=None):
         super().__init__(port=port, n_cores=1, listen_hosts=listen_hosts)
 
-        self.sysarch = 64 if sys.maxsize > 2 ** 32 else 32
+        self.sysarch = 64 if sys.maxsize > 2**32 else 32
         self.machine = machine().lower()
 
         # The MOPTA binary is x86-only, but pestcontrol is pure numpy. Resolving
@@ -195,11 +228,7 @@ class NoDependencyServiceServicer(DualStackGRCPService):
     def _mopta_exectutable(self) -> str:
         return os.path.join(directory_name, self._mopta_exectutable_basename)
 
-    def evaluate_point(
-            self,
-            request: BenchmarkRequest,
-            context
-    ) -> EvaluationResult:
+    def evaluate_point(self, request: BenchmarkRequest, context) -> EvaluationResult:
         """
 
         .. function:: evaluate_point(self, request: BenchmarkRequest, context) -> EvaluationResult
@@ -215,44 +244,53 @@ class NoDependencyServiceServicer(DualStackGRCPService):
 
         """
         x = np.array([v.value for v in request.point.values])
-        value = self.evaluate(request.benchmark.name, x)
-        return EvaluationResult(
-            objectives=[ObjectiveValue(name="f0", value=value)],
-        )
+        seed = request.random_seed if request.HasField("random_seed") else None
+        return self.evaluate(request.benchmark.name, x, seed=seed)
 
     def evaluate(
-            self,
-            name: str,
-            x: np.ndarray,
-            seed: int | None = None
-    ) -> float:
+        self, name: str, x: np.ndarray, seed: int | None = None
+    ) -> EvaluationResult:
         """Evaluate a point in the benchmark's native domain.
 
         Split out of evaluate_point so normalisation and dispatch can be tested
         without standing up a gRPC server. `seed` is accepted for the benchmarks
         that are stochastic; it is threaded from BenchmarkRequest.random_seed.
+
+        Every benchmark builds its own EvaluationResult. Constrained benchmarks
+        fill `constraints`; inequality constraints are feasible iff value <= 0.
+        Unconstrained benchmarks leave the field unset, which protobuf reads as empty.
         """
         if name not in BENCHMARKS:
             raise ValueError(
-                f"Invalid benchmark name {name!r}; this service serves {SUPPORTED_BENCHMARKS}")
+                f"Invalid benchmark name {name!r}; this service serves {SUPPORTED_BENCHMARKS}"
+            )
 
-        if name == "mopta08":
+        elif name == "mopta08":
             # mopta is in [0, 1]^n so we don't need to scale
             download_mopta_executable(self._mopta_exectutable_basename)
             return self.eval_mopta08(x)
-        return _pest_control_score(x, seed=seed)
+        elif name == "pestcontrol":
+            return _pest_control_score(x, seed=seed)
+        elif name == "gramacy":
+            # gramacy is in [0, 1]^2 so we don't need to scale
+            expected_shape = (BENCHMARKS["gramacy"]["dimensions"],)
+            if x.shape != expected_shape:
+                raise ValueError(
+                    f"Input shape {x.shape} does not match expected shape {expected_shape}"
+                )
+            return _gramacy(x)
+        raise NotImplementedError(
+            f"{name!r} is declared in BENCHMARKS but has no dispatch"
+        )
 
-    def eval_mopta08(
-            self,
-            x: np.ndarray
-    ) -> float:
+    def eval_mopta08(self, x: np.ndarray) -> EvaluationResult:
         """
         Evaluate the function with the given input.
 
         :param x: Input array.
         :type x: np.ndarray
         :return: The evaluated result.
-        :rtype: float
+        :rtype: EvaluationResult
         """
         x = x.squeeze()
         assert x.ndim == 1
@@ -278,25 +316,32 @@ class NoDependencyServiceServicer(DualStackGRCPService):
         value = output[0]
         constraints = output[1:]
         # see https://arxiv.org/pdf/2103.00349.pdf E.7
-        return float(value + 10 * np.sum(np.clip(constraints, a_min=0, a_max=None)))
+        value = float(value + 10 * np.sum(np.clip(constraints, a_min=0, a_max=None)))
+        return EvaluationResult(objectives=[ObjectiveValue(name="f0", value=value)])
 
 
 def serve():
     parser = ArgumentParser()
     parser.add_argument(
-        '-p', '--port',
+        "-p",
+        "--port",
         type=int,
-        default=int(os.environ.get('BENCHER_NODEP_PORT', 50054)),
-        help='The port number to start the server on. Default is 50054. '
-             'Can also be set via the BENCHER_NODEP_PORT environment variable.',
+        default=int(os.environ.get("BENCHER_NODEP_PORT", 50054)),
+        help="The port number to start the server on. Default is 50054. "
+        "Can also be set via the BENCHER_NODEP_PORT environment variable.",
     )
     add_listen_argument(parser, env_var=LISTEN_HOST_ENV_VAR)
     args = parser.parse_args()
 
     logging.basicConfig()
-    nodep = NoDependencyServiceServicer(port=args.port, listen_hosts=resolve_listen_entries(args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR))
+    nodep = NoDependencyServiceServicer(
+        port=args.port,
+        listen_hosts=resolve_listen_entries(
+            args.listen_hosts, env_var=LISTEN_HOST_ENV_VAR
+        ),
+    )
     nodep.serve()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     serve()

@@ -5,6 +5,7 @@ Value -> evaluate() hop. This service registers as a SecondLevelBencherServicer
 (not Bencher), so it is driven with a SecondLevelBencherStub rather than
 BencherClient, which only speaks to the front door.
 """
+
 import sys
 from pathlib import Path
 
@@ -31,7 +32,8 @@ def stub():
 
 def test_a_real_request_returns_a_single_objective(stub):
     result = stub.evaluate_point(
-        request_for(BENCHMARK, [FILL] * DIMENSIONS, VALUE_TYPE))
+        request_for(BENCHMARK, [FILL] * DIMENSIONS, VALUE_TYPE)
+    )
     assert isinstance(result, EvaluationResult)
     assert len(result.objectives) == 1
     assert result.objectives[0].name == "f0"
@@ -43,7 +45,8 @@ def test_a_request_carrying_random_seed_is_accepted(stub):
     lockfile pinned below until recently. Tier 1 never sees this, because it
     passes seed= directly rather than through a BenchmarkRequest."""
     result = stub.evaluate_point(
-        request_for(BENCHMARK, [FILL] * DIMENSIONS, VALUE_TYPE, seed=7))
+        request_for(BENCHMARK, [FILL] * DIMENSIONS, VALUE_TYPE, seed=7)
+    )
     assert len(result.objectives) == 1
 
 
