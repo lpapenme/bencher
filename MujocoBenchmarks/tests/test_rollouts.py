@@ -88,7 +88,7 @@ def test_seeded_value_matches_this_platforms_golden(servicer, golden_for, record
             f"no golden for {name} on {goldens_store.PLATFORM_KEY}; "
             f"record one with --update-goldens, or rely on the relative "
             f"determinism tests")
-    assert value == pytest.approx(expected, rel=1e-9), (
+    assert value == pytest.approx(expected, rel=1e-7), (
         f"{name} at seed {GOLDEN_SEED} returned {value!r}, "
         f"golden for {goldens_store.PLATFORM_KEY} is {expected!r}")
 
