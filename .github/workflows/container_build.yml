@@ -38,6 +38,9 @@ concurrency:
 
 env:
   TEST_TAG: bencher:ci
+  # Where the tested image is published. See the publish steps at the end of the
+  # job for when that happens.
+  PUBLISH_IMAGE: gaunab/bencher
 
 jobs:
   build-and-test:
@@ -63,12 +66,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Image tags and labels
+        # Computed before the build so the OCI labels (source commit, build
+        # date) are baked into the image that gets tested, not added afterwards.
+        #   main (push, nightly, manual dispatch)  -> latest
+        #   v* git tag                             -> the version, e.g. 0.6.3
+        # Anything else, such as a dispatch from a feature branch, yields no
+        # tags and is therefore never published. There are deliberately no
+        # per-commit tags: each one would pin up to 2.6 GB of layers on Docker
+        # Hub forever. The commit is in org.opencontainers.image.revision.
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.PUBLISH_IMAGE }}
+          flavor: latest=false
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+
       - name: Build image
         uses: docker/build-push-action@v6
         with:
           context: .
           load: true
           tags: ${{ env.TEST_TAG }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # The old CACHEBUST build-arg was inert: the Dockerfile never declared
@@ -253,6 +275,37 @@ jobs:
           echo "::error::BENCHER_SERVER_PORT override did not take effect"
           tail -40 "$HOME"/BencherServer_bencher.err 2>/dev/null || true
           exit 1
+
+      # Publishing. These steps sit after every Docker and Apptainer check and
+      # carry no status override, so they only run when all of the above passed.
+      # What is pushed is the image in the local daemon -- the bytes that were
+      # just tested -- rather than a second build that could differ on a cache
+      # miss. Never on pull requests (no secrets, untested merge result) and
+      # never from forks.
+      - name: Log in to Docker Hub
+        if: >-
+          github.event_name != 'pull_request' &&
+          github.repository == 'lpapenme/bencher' &&
+          steps.meta.outputs.tags != ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Publish the tested image
+        if: >-
+          github.event_name != 'pull_request' &&
+          github.repository == 'lpapenme/bencher' &&
+          steps.meta.outputs.tags != ''
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+          while read -r tag; do
+            [ -n "$tag" ] || continue
+            docker tag "${TEST_TAG}" "$tag"
+            docker push "$tag"
+          done <<< "$TAGS"
 
       - name: Dump Apptainer service logs on failure
         if: failure()
