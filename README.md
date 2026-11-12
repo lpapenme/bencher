@@ -297,7 +297,7 @@ not compare rollout numbers gathered on different hardware, and say which
 architecture you used when publishing them.
 
 The deterministic benchmarks have no such caveat: `bbob-*`, `pbo-*`, `graph-*`,
-`maxsat*`, `lasso-*`, `svm` and `mopta08` reproduce bit-for-bit across
+`maxsat*`, `lasso-*`, `lj-*`, `svm` and `mopta08` reproduce bit-for-bit across
 architectures, and the test suite pins 64 of them to recorded values.
 
 The following benchmarks are available:
@@ -333,6 +333,15 @@ The following benchmarks are available:
 | 4smallRegion_*             | 151          | integer     | [^14]          | &#x2612; |
 | 5fullRegion_*              | 10100        | integer     | [^14]          | &#x2612; |
 | pestcontrol                | 25           | categorical | [^10],[^13]    | &#x2611; |
+| lj-7                       | 21           | continuous  | [^15]          | &#x2612; |
+| lj-13                      | 39           | continuous  | [^15]          | &#x2612; |
+| lj-38                      | 114          | continuous  | [^15]          | &#x2612; |
+| lj-55                      | 165          | continuous  | [^15]          | &#x2612; |
+| lj-13-sr                   | 33           | continuous  | [^15],[^16]    | &#x2612; |
+| lj-38-sr                   | 108          | continuous  | [^15],[^16]    | &#x2612; |
+| windfarm-10                | 20           | continuous  | [^17]          | &#x2612; |
+| windfarm-30                | 60           | continuous  | [^17]          | &#x2612; |
+| windfarm-50                | 100          | continuous  | [^17]          | &#x2612; |
 | bbob-sphere                | any          | continuous  | [^11],[^12]    | &#x2612; |
 | bbob-ellipsoid             | any          | continuous  | [^11],[^12]    | &#x2612; |
 | bbob-rastrigin             | any          | continuous  | [^11],[^12]    | &#x2612; |
@@ -466,3 +475,9 @@ Evolutionary Computation 32.3 (2024): 205-210.
 Optimization Methods and Software 36.1 (2021): 114-144.
 [^13]: Each category has 5 possible values. The benchmark expects an integer between 0 and 4 for each category.
 [^14]: Ryu, Seunghee, et al. "BO4Mob: Bayesian Optimization Benchmarks for High-Dimensional Urban Mobility Problem." *arXiv preprint arXiv:2510.18824* (2025). For 1ramp, values should be integers between 1 and 2500. For the other scenarios, values should be integers between 1 and 2000.
+
+[^15]: Wales, David J., and Jonathan P. K. Doye. "Global optimization by basin-hopping and the lowest energy structures of Lennard-Jones clusters containing up to 110 atoms." *The Journal of Physical Chemistry A* 101.28 (1997): 5111-5116. `lj-N` minimises the energy of N atoms (3N coordinates, scaled to a box of side 1.5 N^(1/3)); the pair potential is continued linearly below r = 0.8 so overlapping atoms give finite values, which leaves the minima untouched. Global minima from the Cambridge Cluster Database: -16.505384 (N=7), -44.326801 (13), -173.928427 (38), -279.248470 (55).
+
+[^16]: Symmetry-reduced parametrisation of the Lennard-Jones clusters (3N - 6 variables): one atom fixed, one on an axis, one in a half-plane, the rest listed in order of increasing x. Same energy and global minimum as `lj-N`. See `NoDependencyBenchmark/src/nodependencybenchmark/lennard_jones_sr.py`.
+
+[^17]: Wind-farm layout of N identical turbines on a square site (2N variables), minimising the wake-loss fraction over a 12-sector wind rose plus a spacing penalty. Problem class from Mosetti, Poloni and Diviacco, "Optimization of wind turbine positioning in large windfarms by means of a genetic algorithm", *Journal of Wind Engineering and Industrial Aerodynamics* 51.1 (1994); wake model from Bastankhah and Porte-Agel, "A new analytical model for wind-turbine wakes", *Renewable Energy* 70 (2014). See `NoDependencyBenchmark/src/nodependencybenchmark/windfarm.py`.

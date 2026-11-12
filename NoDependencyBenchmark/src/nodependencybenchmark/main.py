@@ -20,6 +20,8 @@ from bencherscaffold.dual_stack_service import (
     resolve_listen_entries,
 )
 
+from nodependencybenchmark import lennard_jones, lennard_jones_sr, windfarm
+
 LISTEN_HOST_ENV_VAR = "BENCHER_NODEP_HOST"
 _env_directory = os.environ.get("MOPTA_DATA_DIR")
 if _env_directory:
@@ -37,6 +39,18 @@ BENCHMARKS = {
     "mopta08": {"dimensions": 124, "type": "purely_continuous"},
     "pestcontrol": {"dimensions": 25, "type": "purely_categorical"},
     "gramacy": {"dimensions": 2, "type": "purely_continuous"},
+    # Lennard-Jones clusters of N atoms: 3N coordinates. See lennard_jones.py.
+    "lj-7": {"dimensions": 21, "type": "purely_continuous"},
+    "lj-13": {"dimensions": 39, "type": "purely_continuous"},
+    "lj-38": {"dimensions": 114, "type": "purely_continuous"},
+    "lj-55": {"dimensions": 165, "type": "purely_continuous"},
+    # Symmetry-reduced Lennard-Jones: 3N - 6 coordinates. See lennard_jones_sr.py.
+    "lj-13-sr": {"dimensions": 33, "type": "purely_continuous"},
+    "lj-38-sr": {"dimensions": 108, "type": "purely_continuous"},
+    # Wind-farm layout of N turbines: 2N coordinates. See windfarm.py.
+    "windfarm-10": {"dimensions": 20, "type": "purely_continuous"},
+    "windfarm-30": {"dimensions": 60, "type": "purely_continuous"},
+    "windfarm-50": {"dimensions": 100, "type": "purely_continuous"},
 }
 
 SUPPORTED_BENCHMARKS = list(BENCHMARKS)
@@ -279,6 +293,24 @@ class NoDependencyServiceServicer(DualStackGRCPService):
                     f"Input shape {x.shape} does not match expected shape {expected_shape}"
                 )
             return _gramacy(x)
+        elif name in lennard_jones.GLOBAL_MINIMA:
+            return EvaluationResult(
+                objectives=[
+                    ObjectiveValue(name="f0", value=lennard_jones.evaluate(name, x))
+                ],
+            )
+        elif name in lennard_jones_sr.GLOBAL_MINIMA:
+            return EvaluationResult(
+                objectives=[
+                    ObjectiveValue(name="f0", value=lennard_jones_sr.evaluate(name, x))
+                ],
+            )
+        elif name in windfarm.NAMES:
+            return EvaluationResult(
+                objectives=[
+                    ObjectiveValue(name="f0", value=windfarm.evaluate(name, x))
+                ],
+            )
         raise NotImplementedError(
             f"{name!r} is declared in BENCHMARKS but has no dispatch"
         )

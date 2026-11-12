@@ -59,6 +59,51 @@
     "dimensions": 2,
     "type": "purely_continuous"
   },
+  "lj-7": {
+    "port": 50054,
+    "dimensions": 21,
+    "type": "purely_continuous"
+  },
+  "lj-13": {
+    "port": 50054,
+    "dimensions": 39,
+    "type": "purely_continuous"
+  },
+  "lj-38": {
+    "port": 50054,
+    "dimensions": 114,
+    "type": "purely_continuous"
+  },
+  "lj-55": {
+    "port": 50054,
+    "dimensions": 165,
+    "type": "purely_continuous"
+  },
+  "lj-13-sr": {
+    "port": 50054,
+    "dimensions": 33,
+    "type": "purely_continuous"
+  },
+  "lj-38-sr": {
+    "port": 50054,
+    "dimensions": 108,
+    "type": "purely_continuous"
+  },
+  "windfarm-10": {
+    "port": 50054,
+    "dimensions": 20,
+    "type": "purely_continuous"
+  },
+  "windfarm-30": {
+    "port": 50054,
+    "dimensions": 60,
+    "type": "purely_continuous"
+  },
+  "windfarm-50": {
+    "port": 50054,
+    "dimensions": 100,
+    "type": "purely_continuous"
+  },
   "maxsat60": {
     "port": 50055,
     "dimensions": 60,
