@@ -49,6 +49,11 @@
     "dimensions": 124,
     "type": "purely_continuous"
   },
+  "mopta08-constrained": {
+    "port": 50054,
+    "dimensions": 124,
+    "type": "purely_continuous"
+  },
   "pestcontrol": {
     "port": 50054,
     "dimensions": 25,

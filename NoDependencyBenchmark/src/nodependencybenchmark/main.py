@@ -35,6 +35,7 @@ else:
 # (see tests/test_registry.py).
 BENCHMARKS = {
     "mopta08": {"dimensions": 124, "type": "purely_continuous"},
+    "mopta08-constrained": {"dimensions": 124, "type": "purely_continuous"},
     "pestcontrol": {"dimensions": 25, "type": "purely_categorical"},
     "gramacy": {"dimensions": 2, "type": "purely_continuous"},
 }
@@ -269,6 +270,15 @@ class NoDependencyServiceServicer(DualStackGRCPService):
             # mopta is in [0, 1]^n so we don't need to scale
             download_mopta_executable(self._mopta_exectutable_basename)
             return self.eval_mopta08(x)
+        elif name == "mopta08-constrained":
+            # mopta is in [0, 1]^n so we don't need to scale
+            expected_shape = (BENCHMARKS["mopta08-constrained"]["dimensions"],)
+            if x.shape != expected_shape:
+                raise ValueError(
+                    f"Input shape {x.shape} does not match expected shape {expected_shape}"
+                )
+            download_mopta_executable(self._mopta_exectutable_basename)
+            return self.eval_mopta08_constrained(x)
         elif name == "pestcontrol":
             return _pest_control_score(x, seed=seed)
         elif name == "gramacy":
@@ -285,13 +295,41 @@ class NoDependencyServiceServicer(DualStackGRCPService):
 
     def eval_mopta08(self, x: np.ndarray) -> EvaluationResult:
         """
-        Evaluate the function with the given input.
+        Evaluate MOPTA08 with its 68 constraints folded into the objective.
 
         :param x: Input array.
         :type x: np.ndarray
         :return: The evaluated result.
         :rtype: EvaluationResult
         """
+        value, constraints = self._run_mopta08(x)
+        # see https://arxiv.org/pdf/2103.00349.pdf E.7
+        value = float(value + 10 * np.sum(np.clip(constraints, a_min=0, a_max=None)))
+        return EvaluationResult(objectives=[ObjectiveValue(name="f0", value=value)])
+
+    def eval_mopta08_constrained(self, x: np.ndarray) -> EvaluationResult:
+        """
+        Evaluate MOPTA08 with its 68 constraints reported separately.
+
+        The objective carries no penalty; each constraint g0..g67 is feasible
+        iff value <= 0.
+
+        :param x: Input array.
+        :type x: np.ndarray
+        :return: The evaluated result.
+        :rtype: EvaluationResult
+        """
+        value, constraints = self._run_mopta08(x)
+        return EvaluationResult(
+            objectives=[ObjectiveValue(name="f0", value=value)],
+            constraints=[
+                Constraint(name=f"g{i}", type=ConstraintType.INEQUALITY, value=float(g))
+                for i, g in enumerate(constraints)
+            ],
+        )
+
+    def _run_mopta08(self, x: np.ndarray) -> tuple[float, np.ndarray]:
+        """Run the MOPTA08 binary and return its objective and constraint values."""
         x = x.squeeze()
         assert x.ndim == 1
         # write input to file in dir
@@ -313,11 +351,7 @@ class NoDependencyServiceServicer(DualStackGRCPService):
         )
         output = [x.strip() for x in output]
         output = np.array([float(x) for x in output if len(x) > 0])
-        value = output[0]
-        constraints = output[1:]
-        # see https://arxiv.org/pdf/2103.00349.pdf E.7
-        value = float(value + 10 * np.sum(np.clip(constraints, a_min=0, a_max=None)))
-        return EvaluationResult(objectives=[ObjectiveValue(name="f0", value=value)])
+        return float(output[0]), output[1:]
 
 
 def serve():

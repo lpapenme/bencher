@@ -28,7 +28,12 @@ def test_servicer_constructs_on_any_architecture(servicer):
 
 
 def test_registry_shape_is_declared():
-    assert set(BENCHMARKS) == {"mopta08", "pestcontrol", "gramacy"}
+    assert set(BENCHMARKS) == {
+        "mopta08",
+        "mopta08-constrained",
+        "pestcontrol",
+        "gramacy",
+    }
     assert BENCHMARKS["pestcontrol"]["dimensions"] == 25
 
 
@@ -88,7 +93,7 @@ class TestDispatch:
     def test_every_declared_benchmark_is_dispatched(self, servicer):
         """A name added to BENCHMARKS without a branch must not fall through silently."""
         for name in BENCHMARKS:
-            if name == "mopta08":
+            if name.startswith("mopta08"):
                 continue  # needs the x86 binary; covered by the e2e tier
             dimensions = BENCHMARKS[name]["dimensions"]
             result = servicer.evaluate(name, np.zeros(dimensions, dtype=int), seed=0)
@@ -133,3 +138,49 @@ class TestGramacy:
     def test_wrong_dimension_is_rejected(self, servicer):
         with pytest.raises(ValueError, match="does not match expected shape"):
             servicer.evaluate("gramacy", np.ones(3))
+
+
+class TestMopta08Constrained:
+    """The binary is x86-only, so these stub it out and check dispatch and how
+    its output becomes an EvaluationResult. The binary itself is covered by e2e."""
+
+    VALUE = 250.0
+    CONSTRAINTS = np.concatenate([[0.3, -0.2, 0.1], np.full(65, -1.0)])
+
+    @pytest.fixture
+    def stubbed(self, servicer, monkeypatch):
+        import nodependencybenchmark.main as main
+
+        monkeypatch.setattr(main, "mopta_executable_basename", lambda: "stub")
+        monkeypatch.setattr(main, "download_mopta_executable", lambda name: None)
+        monkeypatch.setattr(
+            servicer, "_run_mopta08", lambda x: (self.VALUE, self.CONSTRAINTS)
+        )
+        return servicer
+
+    def test_objective_is_the_raw_value(self, stubbed):
+        result = stubbed.evaluate("mopta08-constrained", np.zeros(124))
+        assert [o.name for o in result.objectives] == ["f0"]
+        assert result.objectives[0].value == pytest.approx(self.VALUE)
+
+    def test_every_constraint_is_reported(self, stubbed):
+        result = stubbed.evaluate("mopta08-constrained", np.zeros(124))
+        assert [c.value for c in result.constraints] == pytest.approx(
+            self.CONSTRAINTS
+        )
+
+    def test_constraints_are_named_inequalities(self, stubbed):
+        result = stubbed.evaluate("mopta08-constrained", np.zeros(124))
+        assert [c.name for c in result.constraints] == [f"g{i}" for i in range(68)]
+        assert all(c.type == ConstraintType.INEQUALITY for c in result.constraints)
+
+    def test_unconstrained_variant_folds_violations_into_the_objective(self, stubbed):
+        """mopta08 keeps its penalty form: value + 10 * sum of positive g."""
+        result = stubbed.evaluate("mopta08", np.zeros(124))
+        assert result.objectives[0].value == pytest.approx(self.VALUE + 10 * 0.4)
+        assert len(result.constraints) == 0
+
+    def test_wrong_dimension_is_rejected(self, servicer):
+        """Checked before the binary is needed, so this runs on any architecture."""
+        with pytest.raises(ValueError, match="does not match expected shape"):
+            servicer.evaluate("mopta08-constrained", np.ones(3))
