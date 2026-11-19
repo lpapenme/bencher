@@ -7,13 +7,19 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![arXiv](https://img.shields.io/badge/arXiv-2505.21321-b31b1b)](https://arxiv.org/abs/2505.21321)
 
+Bencher is a lightweight benchmarking framework for black-box optimization designed to make *benchmark execution* simple
+and reproducible, without forcing benchmark dependencies into your optimizer’s environment. It follows a client–server
+architecture: benchmarks run in an isolated, containerized server, while optimizers communicate with the server through
+a stable gRPC interface via a small Python client (`bencherscaffold`).
 
-Bencher is a lightweight benchmarking framework for black-box optimization designed to make *benchmark execution* simple and reproducible, without forcing benchmark dependencies into your optimizer’s environment. It follows a client–server architecture: benchmarks run in an isolated, containerized server, while optimizers communicate with the server through a stable gRPC interface via a small Python client (`bencherscaffold`).
-
-Each benchmark (or compatible benchmark group) is executed in its own dedicated Python environment, which avoids dependency conflicts and makes it easy to mix benchmarks with different (and sometimes outdated) requirements. The Bencher server can be deployed locally via Docker or on HPC systems via Singularity/Apptainer, enabling the same benchmark setup across machines and runs. This repository contains the Bencher server and the benchmark implementations
+Each benchmark (or compatible benchmark group) is executed in its own dedicated Python environment, which avoids
+dependency conflicts and makes it easy to mix benchmarks with different (and sometimes outdated) requirements. The
+Bencher server can be deployed locally via Docker or on HPC systems via Singularity/Apptainer, enabling the same
+benchmark setup across machines and runs. This repository contains the Bencher server and the benchmark implementations
 
 * See the paper for details: https://arxiv.org/abs/2505.21321
-* See this blogpost for an example of how you can integrate `bencher` in your workflow: https://leonard.papenmeier.io/2026/02/05/how-to-add-dozens-of-real-world-benchmarks-to-existing-code-within-five-minutes.html
+* See this blogpost for an example of how you can integrate `bencher` in your
+  workflow: https://leonard.papenmeier.io/2026/02/05/how-to-add-dozens-of-real-world-benchmarks-to-existing-code-within-five-minutes.html
 
 # Docker Container
 
@@ -47,17 +53,17 @@ CLI argument, which takes the highest priority.
 
 **Priority**: CLI argument > environment variable > hardcoded default.
 
-| Service              | Environment Variable      | Default Port |
-|----------------------|---------------------------|--------------|
-| BencherServer        | `BENCHER_SERVER_PORT`     | 50051        |
-| LassoBenchmarks      | `BENCHER_LASSO_PORT`      | 50053        |
-| NoDependencyBenchmark| `BENCHER_NODEP_PORT`      | 50054        |
-| MaxSATBenchmarks     | `BENCHER_MAXSAT_PORT`     | 50055        |
-| EboBenchmarks        | `BENCHER_EBO_PORT`        | 50056        |
-| MujocoBenchmarks     | `BENCHER_MUJOCO_PORT`     | 50057        |
-| SVMBenchmarks        | `BENCHER_SVM_PORT`        | 50058        |
-| IOHBenchmarks        | `BENCHER_IOH_PORT`        | 50059        |
-| BO4MobBenchmark      | `BENCHER_BO4MOB_PORT`     | 50060        |
+| Service               | Environment Variable  | Default Port |
+|-----------------------|-----------------------|--------------|
+| BencherServer         | `BENCHER_SERVER_PORT` | 50051        |
+| LassoBenchmarks       | `BENCHER_LASSO_PORT`  | 50053        |
+| NoDependencyBenchmark | `BENCHER_NODEP_PORT`  | 50054        |
+| MaxSATBenchmarks      | `BENCHER_MAXSAT_PORT` | 50055        |
+| EboBenchmarks         | `BENCHER_EBO_PORT`    | 50056        |
+| MujocoBenchmarks      | `BENCHER_MUJOCO_PORT` | 50057        |
+| SVMBenchmarks         | `BENCHER_SVM_PORT`    | 50058        |
+| IOHBenchmarks         | `BENCHER_IOH_PORT`    | 50059        |
+| BO4MobBenchmark       | `BENCHER_BO4MOB_PORT` | 50060        |
 
 The BencherServer (the main entry point for clients) also honours these variables when
 connecting to the backend benchmark services, so changing a single variable is enough to
@@ -76,17 +82,17 @@ Repeated CLI flags also work. Normal TCP hosts such as `127.0.0.1` or `[::]` are
 with the configured port, while values starting with `unix:` are treated as complete gRPC
 addresses and are used as-is.
 
-| Service              | Environment Variable      | Default Host / Address |
-|----------------------|---------------------------|------------------------|
-| BencherServer        | `BENCHER_SERVER_HOST`     | `0.0.0.0,[::]`         |
-| LassoBenchmarks      | `BENCHER_LASSO_HOST`      | `0.0.0.0,[::]`         |
-| NoDependencyBenchmark| `BENCHER_NODEP_HOST`      | `0.0.0.0,[::]`         |
-| MaxSATBenchmarks     | `BENCHER_MAXSAT_HOST`     | `0.0.0.0,[::]`         |
-| EboBenchmarks        | `BENCHER_EBO_HOST`        | `0.0.0.0,[::]`         |
-| MujocoBenchmarks     | `BENCHER_MUJOCO_HOST`     | `0.0.0.0,[::]`         |
-| SVMBenchmarks        | `BENCHER_SVM_HOST`        | `0.0.0.0,[::]`         |
-| IOHBenchmarks        | `BENCHER_IOH_HOST`        | `0.0.0.0,[::]`         |
-| BO4MobBenchmark      | `BENCHER_BO4MOB_HOST`     | `0.0.0.0,[::]`         |
+| Service               | Environment Variable  | Default Host / Address |
+|-----------------------|-----------------------|------------------------|
+| BencherServer         | `BENCHER_SERVER_HOST` | `0.0.0.0,[::]`         |
+| LassoBenchmarks       | `BENCHER_LASSO_HOST`  | `0.0.0.0,[::]`         |
+| NoDependencyBenchmark | `BENCHER_NODEP_HOST`  | `0.0.0.0,[::]`         |
+| MaxSATBenchmarks      | `BENCHER_MAXSAT_HOST` | `0.0.0.0,[::]`         |
+| EboBenchmarks         | `BENCHER_EBO_HOST`    | `0.0.0.0,[::]`         |
+| MujocoBenchmarks      | `BENCHER_MUJOCO_HOST` | `0.0.0.0,[::]`         |
+| SVMBenchmarks         | `BENCHER_SVM_HOST`    | `0.0.0.0,[::]`         |
+| IOHBenchmarks         | `BENCHER_IOH_HOST`    | `0.0.0.0,[::]`         |
+| BO4MobBenchmark       | `BENCHER_BO4MOB_HOST` | `0.0.0.0,[::]`         |
 
 When the coordinating `BencherServer` connects to backend benchmark services, it also
 honours the benchmark `BENCHER_*_HOST` variables. That keeps the target address aligned
@@ -187,8 +193,8 @@ By default, `apptainer instance start` does **not** give each instance its own n
 namespace — all instances on the same physical host share the host's network stack. Since
 every benchmark service binds a fixed port (see [Port Configuration](#port-configuration)),
 running more than one instance concurrently on the same node (e.g. multiple SLURM array
-tasks landing on the same node) means their gRPC servers all listen on the *same* port
-(e.g. `50051`, `50057`, ...) at once. A client connecting to `127.0.0.1:<port>` can then be
+tasks landing on the same node) means their gRPC servers all listen on the *same* port (e.g. `50051`, `50057`, ...) at
+once. A client connecting to `127.0.0.1:<port>` can then be
 routed by the kernel to a **different instance's** server than the one it started. Since
 gRPC calls have no deadline by default, a misrouted request just hangs forever instead of
 erroring — this can look like a mysterious multi-day stall in a specific benchmark with no
@@ -254,12 +260,13 @@ print(f"Result: {result}")
 
 ### Available Benchmarks
 
-The urban mobility benchmarks (`1ramp_*`, `2corridor_*`, etc.) follow a templated naming convention: `BASE-NAME_DATE_HOUR_EVAL-TYPE` [^14].
+The urban mobility benchmarks (`1ramp_*`, `2corridor_*`, etc.) follow a templated naming convention:
+`BASE-NAME_DATE_HOUR_EVAL-TYPE` [^14].
 
--   **`BASE-NAME`**: Defines the traffic scenario (`1ramp`, `2corridor`, `3junction`, `4smallRegion`, `5fullRegion`).
--   **`DATE`**: A date in `yymmdd` format, from `221008` to `221021`.
--   **`HOUR`**: The time of day (`06-07`, `08-09`, or `17-18`).
--   **`EVAL-TYPE`**: The evaluation metric (`count` or `speed`).
+- **`BASE-NAME`**: Defines the traffic scenario (`1ramp`, `2corridor`, `3junction`, `4smallRegion`, `5fullRegion`).
+- **`DATE`**: A date in `yymmdd` format, from `221008` to `221021`.
+- **`HOUR`**: The time of day (`06-07`, `08-09`, or `17-18`).
+- **`EVAL-TYPE`**: The evaluation metric (`count` or `speed`).
 
 For example, a valid benchmark name is `1ramp_221008_08-09_count`.
 
@@ -285,10 +292,10 @@ The physics simulations amplify floating-point differences, so the same seed on
 a different CPU gives a different answer. Measured between macOS/arm64 and the
 linux/amd64 container at seed 7:
 
-| benchmark | arm64 | linux/amd64 |
-|---|---|---|
-| `mujoco-hopper` | -145.43122334242307 | -146.28735420150608 |
-| `mujoco-walker` | 4.309704043416025 | **-1.7118133581203339** |
+| benchmark       | arm64               | linux/amd64             |
+|-----------------|---------------------|-------------------------|
+| `mujoco-hopper` | -145.43122334242307 | -146.28735420150608     |
+| `mujoco-walker` | 4.309704043416025   | **-1.7118133581203339** |
 
 `mujoco-walker` changes sign. This is inherent to chaotic dynamics in floating
 point, not something Bencher can pin down. In practice it rarely bites, because
@@ -302,106 +309,108 @@ architectures, and the test suite pins 64 of them to recorded values.
 
 The following benchmarks are available:
 
-| Benchmark Name             | # Dimensions | Type        | Source(s)      | Noisy    |
-|----------------------------|--------------|-------------|----------------|----------|
-| lasso-dna                  | 180          | continuous  | [^1],[^5]      | &#x2612; |
-| lasso-simple               | 60           | continuous  | [^1]           | &#x2612; |
-| lasso-medium               | 100          | continuous  | [^1]           | &#x2612; |
-| lasso-high                 | 300          | continuous  | [^1],[^5]      | &#x2612; |
-| lasso-hard                 | 1000         | continuous  | [^1],[^5]      | &#x2612; |
-| lasso-leukemia             | 7129         | continuous  | [^1]           | &#x2612; |
-| lasso-rcv1                 | 47236        | continuous  | [^1],[^2]      | &#x2612; |
-| lasso-diabetes             | 8            | continuous  | [^1]           | &#x2612; |
-| lasso-breastcancer         | 10           | continuous  | [^1]           | &#x2612; |
-| mopta08                    | 124          | continuous  | [^4],[^5]      | &#x2612; |
-| maxsat60                   | 60           | binary      | [^6],[^7]      | &#x2612; |
-| maxsat125                  | 125          | binary      | [^7]           | &#x2612; |
-| robotpushing               | 14           | continuous  | [^3]           | &#x2611; |
-| lunarlander                | 12           | continuous  | [^3]           | &#x2612; |
-| rover                      | 60           | continuous  | [^3]           | &#x2611; |
-| mujoco-ant                 | 888          | continuous  | [^9],[^5]      | &#x2611; |
-| mujoco-hopper              | 33           | continuous  | [^9],[^5]      | &#x2611; |
-| mujoco-walker              | 102          | continuous  | [^9],[^5]      | &#x2611; |
-| mujoco-halfcheetah         | 102          | continuous  | [^9],[^5]      | &#x2611; |
-| mujoco-swimmer             | 16           | continuous  | [^9],[^5]      | &#x2611; |
-| mujoco-humanoid            | 6392         | continuous  | [^9],[^5]      | &#x2611; |
-| svm                        | 388          | continuous  | [^4],[^5],[^8] | &#x2612; |
-| svmmixed                   | 53           | mixed       | [^6],[^7]      | &#x2612; |
-| 1ramp_*                    | 3            | integer     | [^14]          | &#x2612; |
-| 2corridor_*                | 21           | integer     | [^14]          | &#x2612; |
-| 3junction_*                | 44           | integer     | [^14]          | &#x2612; |
-| 4smallRegion_*             | 151          | integer     | [^14]          | &#x2612; |
-| 5fullRegion_*              | 10100        | integer     | [^14]          | &#x2612; |
-| pestcontrol                | 25           | categorical | [^10],[^13]    | &#x2611; |
-| bbob-sphere                | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-ellipsoid             | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-rastrigin             | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-buecherastrigin       | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-linearslope           | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-attractivesector      | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-stepellipsoid         | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-rosenbrock            | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-rosenbrockrotated     | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-ellipsoidrotated      | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-discus                | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-bentcigar             | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-sharpridge            | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-differentpowers       | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-rastriginrotated      | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-weierstrass           | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-schaffers10           | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-schaffers1000         | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-griewankrosenbrock    | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-schwefel              | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-gallagher101          | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-gallagher21           | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-katsuura              | any          | continuous  | [^11],[^12]    | &#x2612; |
-| bbob-lunacekbirastrigin    | any          | continuous  | [^11],[^12]    | &#x2612; |
-| pbo-onemax                 | any          | binary      | [^11]          | &#x2612; |
-| pbo-leadingones            | any          | binary      | [^11]          | &#x2612; |
-| pbo-linear                 | any          | binary      | [^11]          | &#x2612; |
-| pbo-onemaxdummy1           | any          | binary      | [^11]          | &#x2612; |
-| pbo-onemaxdummy2           | any          | binary      | [^11]          | &#x2612; |
-| pbo-onemaxneutrality       | any          | binary      | [^11]          | &#x2612; |
-| pbo-onemaxepistasis        | any          | binary      | [^11]          | &#x2612; |
-| pbo-onemaxruggedness1      | any          | binary      | [^11]          | &#x2612; |
-| pbo-onemaxruggedness2      | any          | binary      | [^11]          | &#x2612; |
-| pbo-onemaxruggedness3      | any          | binary      | [^11]          | &#x2612; |
-| pbo-leadingonesdummy1      | any          | binary      | [^11]          | &#x2612; |
-| pbo-leadingonesdummy2      | any          | binary      | [^11]          | &#x2612; |
-| pbo-leadingonesneutrality  | any          | binary      | [^11]          | &#x2612; |
-| pbo-leadingonesepistasis   | any          | binary      | [^11]          | &#x2612; |
-| pbo-leadingonesruggedness1 | any          | binary      | [^11]          | &#x2612; |
-| pbo-leadingonesruggedness2 | any          | binary      | [^11]          | &#x2612; |
-| pbo-leadingonesruggedness3 | any          | binary      | [^11]          | &#x2612; |
-| pbo-labs                   | any          | binary      | [^11]          | &#x2612; |
-| pbo-isingring              | any          | binary      | [^11]          | &#x2612; |
-| pbo-isingtorus             | any          | binary      | [^11]          | &#x2612; |
-| pbo-isingtriangular        | any          | binary      | [^11]          | &#x2612; |
-| pbo-mis                    | any          | binary      | [^11]          | &#x2612; |
-| pbo-nqueens                | any          | binary      | [^11]          | &#x2612; |
-| pbo-concatenatedtrap       | any          | binary      | [^11]          | &#x2612; |
-| pbo-nklandscapes           | any          | binary      | [^11]          | &#x2612; |
-| graph-maxcut2000           | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcut2001           | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcut2002           | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcut2003           | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcut2004           | 800          | binary      | [^11]          | &#x2612; |
-| graph-maxcoverage2100      | 450          | binary      | [^11]          | &#x2612; |
-| graph-maxcoverage2101      | 450          | binary      | [^11]          | &#x2612; |
+| Benchmark Name             | # Dimensions | Type        | Source(s)        | Noisy    | Constrained |
+|----------------------------|--------------|-------------|------------------|----------|-------------|
+| lasso-dna                  | 180          | continuous  | [^1],[^5]        | &#x2612; | &#x2612;    |
+| lasso-simple               | 60           | continuous  | [^1]             | &#x2612; | &#x2612;    |
+| lasso-medium               | 100          | continuous  | [^1]             | &#x2612; | &#x2612;    |
+| lasso-high                 | 300          | continuous  | [^1],[^5]        | &#x2612; | &#x2612;    |
+| lasso-hard                 | 1000         | continuous  | [^1],[^5]        | &#x2612; | &#x2612;    |
+| lasso-leukemia             | 7129         | continuous  | [^1]             | &#x2612; | &#x2612;    |
+| lasso-rcv1                 | 47236        | continuous  | [^1],[^2]        | &#x2612; | &#x2612;    |
+| lasso-diabetes             | 8            | continuous  | [^1]             | &#x2612; | &#x2612;    |
+| lasso-breastcancer         | 10           | continuous  | [^1]             | &#x2612; | &#x2612;    |
+| mopta08                    | 124          | continuous  | [^4],[^5], [^15] | &#x2612; | &#x2612;    |
+| mopta08-constrained        | 124          | continuous  | [^15]            | &#x2612; | &#x2611;    |
+| gramacy                    | 2            | continuous  | [^16]            | &#x2612; | &#x2611;    |
+| maxsat60                   | 60           | binary      | [^6],[^7]        | &#x2612; | &#x2612;    |
+| maxsat125                  | 125          | binary      | [^7]             | &#x2612; | &#x2612;    |
+| robotpushing               | 14           | continuous  | [^3]             | &#x2611; | &#x2612;    |
+| lunarlander                | 12           | continuous  | [^3]             | &#x2612; | &#x2612;    |
+| rover                      | 60           | continuous  | [^3]             | &#x2611; | &#x2612;    |
+| mujoco-ant                 | 888          | continuous  | [^9],[^5]        | &#x2611; | &#x2612;    |
+| mujoco-hopper              | 33           | continuous  | [^9],[^5]        | &#x2611; | &#x2612;    |
+| mujoco-walker              | 102          | continuous  | [^9],[^5]        | &#x2611; | &#x2612;    |
+| mujoco-halfcheetah         | 102          | continuous  | [^9],[^5]        | &#x2611; | &#x2612;    |
+| mujoco-swimmer             | 16           | continuous  | [^9],[^5]        | &#x2611; | &#x2612;    |
+| mujoco-humanoid            | 6392         | continuous  | [^9],[^5]        | &#x2611; | &#x2612;    |
+| svm                        | 388          | continuous  | [^4],[^5],[^8]   | &#x2612; | &#x2612;    |
+| svmmixed                   | 53           | mixed       | [^6],[^7]        | &#x2612; | &#x2612;    |
+| 1ramp_*                    | 3            | integer     | [^14]            | &#x2612; | &#x2612;    |
+| 2corridor_*                | 21           | integer     | [^14]            | &#x2612; | &#x2612;    |
+| 3junction_*                | 44           | integer     | [^14]            | &#x2612; | &#x2612;    |
+| 4smallRegion_*             | 151          | integer     | [^14]            | &#x2612; | &#x2612;    |
+| 5fullRegion_*              | 10100        | integer     | [^14]            | &#x2612; | &#x2612;    |
+| pestcontrol                | 25           | categorical | [^10],[^13]      | &#x2611; | &#x2612;    |
+| bbob-sphere                | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-ellipsoid             | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-rastrigin             | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-buecherastrigin       | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-linearslope           | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-attractivesector      | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-stepellipsoid         | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-rosenbrock            | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-rosenbrockrotated     | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-ellipsoidrotated      | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-discus                | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-bentcigar             | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-sharpridge            | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-differentpowers       | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-rastriginrotated      | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-weierstrass           | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-schaffers10           | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-schaffers1000         | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-griewankrosenbrock    | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-schwefel              | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-gallagher101          | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-gallagher21           | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-katsuura              | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| bbob-lunacekbirastrigin    | any          | continuous  | [^11],[^12]      | &#x2612; | &#x2612;    |
+| pbo-onemax                 | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-leadingones            | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-linear                 | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-onemaxdummy1           | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-onemaxdummy2           | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-onemaxneutrality       | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-onemaxepistasis        | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-onemaxruggedness1      | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-onemaxruggedness2      | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-onemaxruggedness3      | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-leadingonesdummy1      | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-leadingonesdummy2      | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-leadingonesneutrality  | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-leadingonesepistasis   | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-leadingonesruggedness1 | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-leadingonesruggedness2 | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-leadingonesruggedness3 | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-labs                   | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-isingring              | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-isingtorus             | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-isingtriangular        | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-mis                    | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-nqueens                | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-concatenatedtrap       | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| pbo-nklandscapes           | any          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| graph-maxcut2000           | 800          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| graph-maxcut2001           | 800          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| graph-maxcut2002           | 800          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| graph-maxcut2003           | 800          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| graph-maxcut2004           | 800          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| graph-maxcoverage2100      | 450          | binary      | [^11]            | &#x2612; | &#x2612;    |
+| graph-maxcoverage2101      | 450          | binary      | [^11]            | &#x2612; | &#x2612;    |
 
 # Citation
 If you use this repository or the benchmarks in your research, please cite the following [paper](https://arxiv.org/abs/2505.21321):
 
 ```bibtex
 @misc{papenmeier2025bencher,
-      title={Bencher: Simple and Reproducible Benchmarking for Black-Box Optimization}, 
-      author={Leonard Papenmeier and Luigi Nardi},
-      year={2025},
-      eprint={2505.21321},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2505.21321}, 
+    title = {Bencher: Simple and Reproducible Benchmarking for Black-Box Optimization},
+    author = {Leonard Papenmeier and Luigi Nardi},
+    year = {2025},
+    eprint = {2505.21321},
+    archivePrefix = {arXiv},
+    primaryClass = {cs.LG},
+    url = {https://arxiv.org/abs/2505.21321},
 }
 ```
 
@@ -431,7 +440,6 @@ cp -r /Volumes/MuJoCo/MuJoCo.framework/Versions/Current/Headers ~/.mujoco/mujoco
 ```
 
 You probably have to allow access to the library in the Security & Privacy settings.
-
 
 ```
 export CC=/opt/homebrew/opt/llvm/bin/clang 
@@ -465,4 +473,8 @@ Evolutionary Computation 32.3 (2024): 205-210.
 [^12]: Hansen, Nikolaus, et al. "COCO: A platform for comparing continuous optimizers in a black-box setting."
 Optimization Methods and Software 36.1 (2021): 114-144.
 [^13]: Each category has 5 possible values. The benchmark expects an integer between 0 and 4 for each category.
-[^14]: Ryu, Seunghee, et al. "BO4Mob: Bayesian Optimization Benchmarks for High-Dimensional Urban Mobility Problem." *arXiv preprint arXiv:2510.18824* (2025). For 1ramp, values should be integers between 1 and 2500. For the other scenarios, values should be integers between 1 and 2000.
+[^14]: Ryu, Seunghee, et al. "BO4Mob: Bayesian Optimization Benchmarks for High-Dimensional Urban Mobility Problem."
+*arXiv preprint arXiv:2510.18824* (2025). For 1ramp, values should be integers between 1 and 2500. For the other
+scenarios, values should be integers between 1 and 2000.
+[^15]: Jones, Donald; Anjos, Miguel. (2025). MOPTA 2008 Jones Benchmark, [dataset]. https://doi.org/10.7488/ds/7894.
+[^16]: Gramacy, Robert B., et al. "Modeling an augmented Lagrangian for blackbox constrained optimization." *Technometrics* 58.1 (2016): 1-11. https://doi.org/10.48550/arXiv.1403.4890
