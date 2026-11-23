@@ -13,7 +13,7 @@ Two things to know about the services here:
   `wait_for_termination()`, so tests build their own server rather than call it.
 
 Servers bind 127.0.0.1:0 so the OS assigns a free port. That keeps tests off the
-hardcoded 50053-50060 range, which collides with whatever else is running -- on
+hardcoded 50053-50061 range, which collides with whatever else is running -- on
 one machine here 50059 is held by a VPN helper.
 
 Loaded by package conftests via sys.path, the same way tests/e2e/conftest.py

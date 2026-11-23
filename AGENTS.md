@@ -14,7 +14,7 @@ Tests are tiered by cost. Run the cheap ones constantly; the expensive one runs 
 
 **Tier 0 — contract (`tests/`, repo root).** `uv run pytest tests -q`. ~0.3s, and deliberately needs no benchmark dependencies: it parses source and config against the installed `bencherscaffold`. Catches scaffold API drift, `uv.lock` disagreeing with `pyproject.toml`, `benchmark-registry.json` drifting from what services serve, and source using syntax newer than the interpreter a package pins.
 
-**Tier 1/2 — per package (`<Package>/tests/`).** `cd <Package> && uv run --locked --group dev pytest tests -q`. Tier 1 calls the service's `evaluate()` directly; Tier 2 starts the real servicer on an ephemeral port and drives it over gRPC via `tests/grpc_harness.py`. Every package has a suite, and all nine run on every PR.
+**Tier 1/2 — per package (`<Package>/tests/`).** `cd <Package> && uv run --locked --group dev pytest tests -q`. Tier 1 calls the service's `evaluate()` directly; Tier 2 starts the real servicer on an ephemeral port and drives it over gRPC via `tests/grpc_harness.py`. Every package has a suite, and every suite runs on every PR.
 
 **Tier 3 — end to end (`tests/e2e/`).** Needs a running container: `uv run pytest tests/e2e -q --target localhost:50051`. Drives every benchmark the registry advertises, so a new registry entry is covered automatically.
 

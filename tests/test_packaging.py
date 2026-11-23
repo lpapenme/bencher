@@ -1,4 +1,4 @@
-"""Guards the nine packages' metadata and lockfiles.
+"""Guards every package's metadata and lockfile.
 
 Today the only thing that validates lock/pyproject agreement is
 `uv sync --frozen` inside the Docker build, ~40 minutes in. These checks take
@@ -162,7 +162,7 @@ def test_package_with_tests_can_run_them(pkg):
 
 
 def test_every_package_has_tests():
-    """All nine run on PRs; a package without tests is an untested CI leg."""
+    """Every package runs on PRs; one without tests is an untested CI leg."""
     missing = [rel(p) for p in PACKAGES if not (p / "tests").is_dir()]
     assert not missing, f"packages with no tests/: {missing}"
 

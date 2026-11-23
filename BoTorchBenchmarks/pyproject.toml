@@ -1,0 +1,38 @@
+[project]
+name = "botorchbenchmarks"
+version = "0.1.0"
+description = ""
+readme = "README.md"
+requires-python = "~=3.11.0"
+dependencies = [
+    "bencherscaffold~=0.6.4",
+    "botorch~=0.18.1",
+    "numpy>=2.4.6,<3",
+    "torch>=2.15.0,<3",
+]
+
+[project.scripts]
+start-benchmark-service = "botorchbenchmarks.main:serve"
+
+[tool.uv.sources]
+torch = { index = "torch" }
+
+[[tool.uv.index]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[build-system]
+requires = ["uv_build>=0.9.6,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.bencher.ci]
+tier = "runner"
