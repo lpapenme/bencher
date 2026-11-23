@@ -43,7 +43,7 @@ def test_wrong_dimensionality_is_rejected(servicer, name, dimensions):
 
 @pytest.mark.parametrize("name,dimensions", [("robotpushing", 14), ("rover", 60)])
 def test_benchmark_evaluates(servicer, name, dimensions):
-    """Builds the simulator, so it only runs where `ebo` is fully working."""
+    """Builds the simulator, so it needs the full `ebo` stack, but no data."""
     assert np.isfinite(servicer.evaluate(name, np.full(dimensions, 0.5)))
 
 
