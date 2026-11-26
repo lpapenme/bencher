@@ -16,8 +16,8 @@ from benchmarks import STOCHASTIC
 from conftest import (REPO_ROOT, declared_specs, dispatch_names, registry_by_port, rel)
 
 # Ports the front door knows how to override via env vars
-# (BencherServer/src/bencherserver/main.py:18-38).
-KNOWN_PORTS = {50053, 50054, 50055, 50056, 50057, 50058, 50059, 50060}
+# (BencherServer/src/bencherserver/main.py:20-42).
+KNOWN_PORTS = {50053, 50054, 50055, 50056, 50057, 50058, 50059, 50060, 50061}
 
 VALID_TYPES = {
     "purely_continuous", "purely_binary", "purely_categorical",
@@ -30,7 +30,7 @@ VALID_TYPES = {
 STATIC_FAMILIES = {
     50053: ("LassoBenchmarks/src/lassobenchmarks/main.py", {"BENCHMARKS"}),
     # Refactored to the declarative BENCHMARKS mapping. As each remaining
-    # service follows, switch its entry here; once all nine have, this table
+    # service follows, switch its entry here; once every service has, this table
     # collapses to a single variable name and dispatch_names' fallbacks for
     # `in [...]` / `== "..."` comparisons become dead code.
     50054: ("NoDependencyBenchmark/src/nodependencybenchmark/main.py", {"BENCHMARKS"}),
@@ -38,6 +38,7 @@ STATIC_FAMILIES = {
     50056: ("EboBenchmarks/src/ebobenchmarks/main.py", {"BENCHMARKS"}),
     50057: ("MujocoBenchmarks/src/mujocobenchmarks/main.py", {"BENCHMARKS"}),
     50058: ("SVMBenchmarks/src/svmbenchmarks/main.py", {"BENCHMARKS"}),
+    50061: ("BoTorchBenchmarks/src/botorchbenchmarks/main.py", {"BENCHMARKS"}),
 }
 
 IOH_PORT = 50059

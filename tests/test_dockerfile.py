@@ -1,7 +1,7 @@
 """Guards the Dockerfile's per-package COPY lists and the build context.
 
 The Dockerfile copies each package's pyproject.toml, uv.lock and .python-version
-explicitly rather than by glob, because a glob would flatten nine identically
+explicitly rather than by glob, because a glob would flatten the identically
 named files into one. Explicit lists drift when a package is added, so these
 tests keep them honest -- a new benchmark that is not wired into the Dockerfile
 would otherwise build an image silently missing that service.

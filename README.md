@@ -64,6 +64,7 @@ CLI argument, which takes the highest priority.
 | SVMBenchmarks         | `BENCHER_SVM_PORT`    | 50058        |
 | IOHBenchmarks         | `BENCHER_IOH_PORT`    | 50059        |
 | BO4MobBenchmark       | `BENCHER_BO4MOB_PORT` | 50060        |
+| BoTorchBenchmarks     | `BENCHER_BOTORCH_PORT` | 50061       |
 
 The BencherServer (the main entry point for clients) also honours these variables when
 connecting to the backend benchmark services, so changing a single variable is enough to
@@ -93,6 +94,7 @@ addresses and are used as-is.
 | SVMBenchmarks         | `BENCHER_SVM_HOST`    | `0.0.0.0,[::]`         |
 | IOHBenchmarks         | `BENCHER_IOH_HOST`    | `0.0.0.0,[::]`         |
 | BO4MobBenchmark       | `BENCHER_BO4MOB_HOST` | `0.0.0.0,[::]`         |
+| BoTorchBenchmarks     | `BENCHER_BOTORCH_HOST` | `0.0.0.0,[::]`        |
 
 When the coordinating `BencherServer` connects to backend benchmark services, it also
 honours the benchmark `BENCHER_*_HOST` variables. That keeps the target address aligned
@@ -323,6 +325,7 @@ The following benchmarks are available:
 | mopta08                    | 124          | continuous  | [^4],[^5], [^15] | &#x2612; | &#x2612;    |
 | mopta08-constrained        | 124          | continuous  | [^15]            | &#x2612; | &#x2611;    |
 | gramacy                    | 2            | continuous  | [^16]            | &#x2612; | &#x2611;    |
+| pressure-vessel            | 4            | continuous  | [^17],[^18]      | &#x2612; | &#x2611;    |
 | maxsat60                   | 60           | binary      | [^6],[^7]        | &#x2612; | &#x2612;    |
 | maxsat125                  | 125          | binary      | [^7]             | &#x2612; | &#x2612;    |
 | robotpushing               | 14           | continuous  | [^3]             | &#x2611; | &#x2612;    |
@@ -478,3 +481,5 @@ Optimization Methods and Software 36.1 (2021): 114-144.
 scenarios, values should be integers between 1 and 2000.
 [^15]: Jones, Donald; Anjos, Miguel. (2025). MOPTA 2008 Jones Benchmark, [dataset]. https://doi.org/10.7488/ds/7894.
 [^16]: Gramacy, Robert B., et al. "Modeling an augmented Lagrangian for blackbox constrained optimization." *Technometrics* 58.1 (2016): 1-11. https://doi.org/10.48550/arXiv.1403.4890
+[^17]: Coello Coello, Carlos A., and Efrén Mezura Montes. "Constraint-handling in genetic algorithms through the use of dominance-based tournament selection." *Advanced Engineering Informatics* 16.3 (2002): 193-203.
+[^18]: [`BoTorch`](https://github.com/pytorch/botorch) test functions. For pressure-vessel, Bencher rounds the shell and head thickness (x1, x2) to multiples of 0.0625 in the constraints as well as the objective; BoTorch rounds them in the objective only.

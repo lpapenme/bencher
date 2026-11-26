@@ -26,6 +26,7 @@ _BENCHMARK_PORT_ENV_VARS: dict[int, str] = {
     50058: 'BENCHER_SVM_PORT',
     50059: 'BENCHER_IOH_PORT',
     50060: 'BENCHER_BO4MOB_PORT',
+    50061: 'BENCHER_BOTORCH_PORT',
 }
 
 _BENCHMARK_HOST_ENV_VARS: dict[int, str] = {
@@ -37,6 +38,7 @@ _BENCHMARK_HOST_ENV_VARS: dict[int, str] = {
     50058: 'BENCHER_SVM_HOST',
     50059: 'BENCHER_IOH_HOST',
     50060: 'BENCHER_BO4MOB_HOST',
+    50061: 'BENCHER_BOTORCH_HOST',
 }
 
 DEFAULT_REGISTRY_PATH = Path(__file__).parent.parent.parent / 'benchmark-registry.json'

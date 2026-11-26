@@ -55,12 +55,13 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ######################  interpreters  ############################
 # pyenv compiles CPython from source, minutes per version. This layer depends
 # ONLY on the .python-version files, so it survives every dependency and source
-# change. Packages are listed explicitly because a glob COPY would flatten nine
+# change. Packages are listed explicitly because a glob COPY would flatten the
 # identically-named files into one; tests/test_dockerfile.py asserts this list
 # stays in step with the packages that actually exist.
 FROM system AS interpreters
 
 COPY BO4MobBenchmark/.python-version        /opt/bencher/BO4MobBenchmark/.python-version
+COPY BoTorchBenchmarks/.python-version      /opt/bencher/BoTorchBenchmarks/.python-version
 COPY BencherServer/.python-version          /opt/bencher/BencherServer/.python-version
 COPY EboBenchmarks/.python-version          /opt/bencher/EboBenchmarks/.python-version
 COPY IOHBenchmarks/.python-version          /opt/bencher/IOHBenchmarks/.python-version
@@ -100,6 +101,7 @@ RUN --mount=type=cache,target=/opt/pyenv/cache \
 FROM interpreters AS dependencies
 
 COPY BO4MobBenchmark/pyproject.toml BO4MobBenchmark/uv.lock              /opt/bencher/BO4MobBenchmark/
+COPY BoTorchBenchmarks/pyproject.toml BoTorchBenchmarks/uv.lock          /opt/bencher/BoTorchBenchmarks/
 COPY BencherServer/pyproject.toml BencherServer/uv.lock                  /opt/bencher/BencherServer/
 COPY EboBenchmarks/pyproject.toml EboBenchmarks/uv.lock                  /opt/bencher/EboBenchmarks/
 COPY IOHBenchmarks/pyproject.toml IOHBenchmarks/uv.lock                  /opt/bencher/IOHBenchmarks/

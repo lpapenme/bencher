@@ -2508,5 +2508,10 @@
     "port": 50060,
     "dimensions": 10100,
     "type": "purely_integer"
+  },
+  "pressure-vessel": {
+    "port": 50061,
+    "dimensions": 4,
+    "type": "purely_continuous"
   }
 }
